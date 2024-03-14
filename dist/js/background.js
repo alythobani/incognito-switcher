@@ -36,6 +36,7 @@ chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
 chrome.action.onClicked.addListener(convertToForgettableCallback(onActionClicked));
 function onActionClicked(tab) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log("onActionClicked", tab.url, tab.incognito);
         if (tab.url === undefined) {
             throw new Error("tab.url is undefined");
         }
@@ -56,6 +57,7 @@ let sortedWindows = [];
 const initializeSortedWindows = () => {
     chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
         sortedWindows = windows.map(getWindowFocusInfo);
+        console.log("sortedWindows", sortedWindows);
     });
 };
 const createContextMenu = (actionType) => {
@@ -86,6 +88,7 @@ chrome.windows.onFocusChanged.addListener(function (windowId) {
     if (windowId === chrome.windows.WINDOW_ID_NONE) {
         return;
     }
+    console.log("Focus changed: " + windowId);
     for (const windowInfo of sortedWindows) {
         if (windowInfo.windowId === windowId) {
             windowInfo.lastFocused = new Date();
@@ -93,6 +96,7 @@ chrome.windows.onFocusChanged.addListener(function (windowId) {
         }
     }
     sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
+    console.log(`sortedWindows: ${JSON.stringify(sortedWindows.map((w) => w.windowId))}`);
 });
 chrome.contextMenus.onClicked.addListener(convertToForgettableCallback(onContextMenuItemClicked));
 function onContextMenuItemClicked(info, tab) {
