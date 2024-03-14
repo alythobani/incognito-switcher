@@ -4,9 +4,10 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.263"
-  },
-  "dependencies": {
+    "@types/chrome": "^0.0.263",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
     "typescript": "^5.4.2"
   }
 }

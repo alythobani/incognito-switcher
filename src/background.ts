@@ -1,4 +1,10 @@
-chrome.action.onClicked.addListener(onActionClicked);
+function convertToForgettableCallback<PromiseFunction extends (...args: any[]) => Promise<void>>(
+  promiseFunction: PromiseFunction
+): (...args: Parameters<PromiseFunction>) => void {
+  return (...args) => {
+    void promiseFunction(...args);
+  };
+}
 
 chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
   if (isAllowedAccess) {
@@ -13,12 +19,12 @@ chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
       type: "basic",
       iconUrl: "../icon/icon.png",
       title: "Enable Incognito Access",
-      message: message,
+      message,
     },
     (notificationId) => {
       chrome.notifications.onClicked.addListener((clickedNotificationId) => {
         if (clickedNotificationId === notificationId) {
-          chrome.tabs.create({ url: enableAccessLink });
+          void chrome.tabs.create({ url: enableAccessLink });
           chrome.notifications.clear(notificationId);
         }
       });
@@ -26,16 +32,17 @@ chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
   );
 });
 
-function onActionClicked(tab: chrome.tabs.Tab) {
-  console.log("onActionClicked", tab.url, tab.incognito);
-  if (!tab.url) {
+chrome.action.onClicked.addListener(convertToForgettableCallback(onActionClicked));
+
+async function onActionClicked(tab: chrome.tabs.Tab): Promise<void> {
+  if (tab.url === undefined) {
     throw new Error("tab.url is undefined");
   }
-  createNewTabInOppositeMode(tab.url, tab.incognito);
-  if (!tab.id) {
+  await createNewTabInOppositeMode(tab.url, tab.incognito);
+  if (tab.id === undefined) {
     throw new Error("tab.id is undefined");
   }
-  chrome.tabs.remove(tab.id);
+  await chrome.tabs.remove(tab.id);
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -52,14 +59,13 @@ type WindowFocusInfo = {
 };
 
 let sortedWindows: WindowFocusInfo[] = [];
-const initializeSortedWindows = () => {
+const initializeSortedWindows = (): void => {
   chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
     sortedWindows = windows.map(getWindowFocusInfo);
-    console.log("sortedWindows", sortedWindows);
   });
 };
 
-const createContextMenu = (actionType: "link" | "page" | "selection") => {
+const createContextMenu = (actionType: "link" | "page" | "selection"): void => {
   chrome.contextMenus.create({
     id: `${actionType}Item`,
     title: chrome.i18n.getMessage(`${actionType}ContextMenu`),
@@ -73,7 +79,7 @@ chrome.windows.onCreated.addListener(function (window) {
 });
 
 function getWindowFocusInfo(window: chrome.windows.Window): WindowFocusInfo {
-  if (!window.id) {
+  if (window.id === undefined) {
     throw new Error("window.id is undefined");
   }
   return {
@@ -88,7 +94,6 @@ chrome.windows.onRemoved.addListener(function (windowId) {
 });
 
 chrome.windows.onFocusChanged.addListener(function (windowId) {
-  console.log("Focus changed: " + windowId);
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     return;
   }
@@ -101,66 +106,75 @@ chrome.windows.onFocusChanged.addListener(function (windowId) {
   sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
 });
 
-chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (!tab) {
+chrome.contextMenus.onClicked.addListener(convertToForgettableCallback(onContextMenuItemClicked));
+
+async function onContextMenuItemClicked(
+  info: chrome.contextMenus.OnClickData,
+  tab?: chrome.tabs.Tab
+): Promise<void> {
+  if (tab === undefined) {
     throw new Error("Context menu clicked with no active tab");
   }
-  let link;
-  let removeTab = false;
-  switch (info.menuItemId) {
-    case "linkItem":
-      link = info.linkUrl;
-      break;
-    case "pageItem":
-      link = info.pageUrl;
-      removeTab = true;
-      break;
-    case "selectionItem":
-      if (!info.selectionText) {
-        return;
-      }
-      let text = info.selectionText.trim();
-      if (isURL(text)) {
-        link = text;
-      } else {
-        // no need to encode?
-        link = "https://www.google.com/search?q=" + text;
-      }
-      break;
-  }
-  if (link) {
-    createNewTabInOppositeMode(link, tab.incognito);
-  }
-  if (removeTab) {
-    if (!tab.id) {
+  const url = getTargetUrl(info);
+  const shouldCloseTab = info.menuItemId === "pageItem";
+  await createNewTabInOppositeMode(url, tab.incognito);
+  if (shouldCloseTab) {
+    if (tab.id === undefined) {
       throw new Error("tab.id is undefined");
     }
-    chrome.tabs.remove(tab.id);
+    await chrome.tabs.remove(tab.id);
   }
-});
+}
 
-async function createNewTabInOppositeMode(url: string, incognito: boolean) {
+function getTargetUrl(info: chrome.contextMenus.OnClickData): string {
+  switch (info.menuItemId) {
+    case "linkItem":
+      if (info.linkUrl === undefined) {
+        throw new Error("info.linkUrl is undefined");
+      }
+      return info.linkUrl;
+    case "pageItem":
+      return info.pageUrl;
+    case "selectionItem": {
+      if (info.selectionText === undefined) {
+        throw new Error("info.selectionText is undefined");
+      }
+      const trimmedText = info.selectionText.trim();
+      if (isURL(trimmedText)) {
+        return trimmedText;
+      } else {
+        // no need to encode?
+        return "https://www.google.com/search?q=" + trimmedText;
+      }
+    }
+    default:
+      throw new Error(`Unknown context menu item ID: ${info.menuItemId}`);
+  }
+}
+
+async function createNewTabInOppositeMode(url: string, incognito: boolean): Promise<void> {
   const targetWindowInfo = sortedWindows.find((windowInfo) => windowInfo.incognito !== incognito);
   if (targetWindowInfo === undefined) {
     console.log("No target window found, creating new window.");
     await chrome.windows.create({
-      url: url,
+      url,
       incognito: !incognito,
     });
     return;
   }
   chrome.windows.update(targetWindowInfo.windowId, { focused: true }, (focusedWindow) => {
-    chrome.tabs.create({
+    void chrome.tabs.create({
       windowId: focusedWindow.id,
-      url: url,
+      url,
       active: true,
     });
   });
 }
 
-function isURL(text: string) {
+function isURL(text: string): boolean {
   let url;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     url = new URL(text);
   } catch (e) {
     return false;
