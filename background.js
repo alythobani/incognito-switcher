@@ -4,27 +4,23 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "linkItem",
-    title: chrome.i18n.getMessage("linkContextMenu"),
-    contexts: ["link"]
-  });
-  chrome.contextMenus.create({
-    id: "pageItem",
-    title: chrome.i18n.getMessage("pageContextMenu"),
-    contexts: ["page"]
-  });
-  chrome.contextMenus.create({
-    id: "selectionItem",
-    title: chrome.i18n.getMessage("textContextMenu"),
-    contexts: ["selection"]
-  });
+  createContextMenu("link");
+  createContextMenu("page");
+  createContextMenu("selection");
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+const createContextMenu = (actionType) => {
+  chrome.contextMenus.create({
+    id: `${actionType}Item`,
+    title: chrome.i18n.getMessage(`${actionType}ContextMenu`),
+    contexts: [actionType],
+  });
+};
+
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   let link;
   let removeTab = false;
-  switch(info.menuItemId) {
+  switch (info.menuItemId) {
     case "linkItem":
       link = info.linkUrl;
       break;
@@ -36,10 +32,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       let text = info.selectionText.trim();
       if (isURL(text)) {
         link = text;
-      }
-      else {
+      } else {
         // no need to encode?
-        link = 'https://www.google.com/search?q=' + text;
+        link = "https://www.google.com/search?q=" + text;
       }
       break;
   }

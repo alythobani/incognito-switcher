@@ -6,9 +6,9 @@
     "message": "Open Link in Incognito/Normal"
   },
   "pageContextMenu": {
-    "message": "Switch Page in Incognito/Normal"
+    "message": "Switch Current Page to Incognito/Normal"
   },
-  "textContextMenu": {
+  "selectionContextMenu": {
     "message": "Search/Open Text in Incognito/Normal"
   }
 }
