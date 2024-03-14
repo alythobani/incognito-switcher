@@ -39,18 +39,67 @@ function onActionClicked(tab: chrome.tabs.Tab) {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
+  initializeSortedWindows();
   createContextMenu("link");
   createContextMenu("page");
   createContextMenu("selection");
 });
 
-function createContextMenu(actionType: "link" | "page" | "selection") {
+type WindowFocusInfo = {
+  windowId: number;
+  lastFocused: Date;
+  incognito: boolean;
+};
+
+let sortedWindows: WindowFocusInfo[] = [];
+const initializeSortedWindows = () => {
+  chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
+    sortedWindows = windows.map(getWindowFocusInfo);
+    console.log("sortedWindows", sortedWindows);
+  });
+};
+
+const createContextMenu = (actionType: "link" | "page" | "selection") => {
   chrome.contextMenus.create({
     id: `${actionType}Item`,
     title: chrome.i18n.getMessage(`${actionType}ContextMenu`),
     contexts: [actionType],
   });
+};
+
+chrome.windows.onCreated.addListener(function (window) {
+  const newWindowInfo = getWindowFocusInfo(window);
+  sortedWindows.push(newWindowInfo);
+});
+
+function getWindowFocusInfo(window: chrome.windows.Window): WindowFocusInfo {
+  if (!window.id) {
+    throw new Error("window.id is undefined");
+  }
+  return {
+    windowId: window.id,
+    lastFocused: new Date(),
+    incognito: window.incognito,
+  };
 }
+
+chrome.windows.onRemoved.addListener(function (windowId) {
+  sortedWindows = sortedWindows.filter((window) => window.windowId !== windowId);
+});
+
+chrome.windows.onFocusChanged.addListener(function (windowId) {
+  console.log("Focus changed: " + windowId);
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    return;
+  }
+  for (const windowInfo of sortedWindows) {
+    if (windowInfo.windowId === windowId) {
+      windowInfo.lastFocused = new Date();
+      break;
+    }
+  }
+  sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
+});
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab) {
@@ -90,21 +139,22 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-function createNewTabInOppositeMode(url: string, incognito: boolean) {
-  chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
-    for (let i = 0; i < windows.length; i++) {
-      const window = windows[i];
-      if (!window.id) {
-        return;
-      }
-      if (window.incognito != incognito) {
-        chrome.windows.update(window.id, { focused: true }, function (focused_window) {
-          chrome.tabs.create({ windowId: focused_window.id, url: url, active: true });
-        });
-        return;
-      }
-    }
-    chrome.windows.create({ url: url, incognito: !incognito });
+async function createNewTabInOppositeMode(url: string, incognito: boolean) {
+  const targetWindowInfo = sortedWindows.find((windowInfo) => windowInfo.incognito !== incognito);
+  if (targetWindowInfo === undefined) {
+    console.log("No target window found, creating new window.");
+    await chrome.windows.create({
+      url: url,
+      incognito: !incognito,
+    });
+    return;
+  }
+  chrome.windows.update(targetWindowInfo.windowId, { focused: true }, (focusedWindow) => {
+    chrome.tabs.create({
+      windowId: focusedWindow.id,
+      url: url,
+      active: true,
+    });
   });
 }
 
