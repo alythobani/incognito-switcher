@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "version": "1.2.0",
   "action": {},
-  "permissions": ["tabs", "contextMenus"],
+  "permissions": ["tabs", "contextMenus", "notifications"],
   "icons": {
     "16": "icon/16.png",
     "48": "icon/48.png",
@@ -12,6 +12,6 @@
   "name": "Incognito Switcher",
   "description": "__MSG_extDesc__",
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "js/background.js"
   }
 }

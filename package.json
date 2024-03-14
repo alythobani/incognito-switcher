@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.263"
+  },
+  "dependencies": {
+    "typescript": "^5.4.2"
+  }
+}
