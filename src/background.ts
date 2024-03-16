@@ -1,12 +1,5 @@
 import { verifyIncognitoAccess } from "./setup/verifyIncognitoAccess";
-
-function convertToForgettableCallback<PromiseFunction extends (...args: any[]) => Promise<void>>(
-  promiseFunction: PromiseFunction
-): (...args: Parameters<PromiseFunction>) => void {
-  return (...args) => {
-    void promiseFunction(...args);
-  };
-}
+import { convertToForgettableCallback, isURL } from "./utils";
 
 verifyIncognitoAccess();
 
@@ -151,15 +144,4 @@ async function createNewTabInOppositeMode(url: string, incognito: boolean): Prom
       active: true,
     });
   });
-}
-
-function isURL(text: string): boolean {
-  let url;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    url = new URL(text);
-  } catch (e) {
-    return false;
-  }
-  return true;
 }

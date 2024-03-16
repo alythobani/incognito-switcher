@@ -16,13 +16,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const verifyIncognitoAccess_1 = __webpack_require__(1);
-function convertToForgettableCallback(promiseFunction) {
-    return (...args) => {
-        void promiseFunction(...args);
-    };
-}
+const utils_1 = __webpack_require__(2);
 (0, verifyIncognitoAccess_1.verifyIncognitoAccess)();
-chrome.action.onClicked.addListener(convertToForgettableCallback(onActionClicked));
+chrome.action.onClicked.addListener((0, utils_1.convertToForgettableCallback)(onActionClicked));
 function onActionClicked(tab) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log("onActionClicked", tab.url, tab.incognito);
@@ -87,7 +83,7 @@ chrome.windows.onFocusChanged.addListener(function (windowId) {
     sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
     console.log(`sortedWindows: ${JSON.stringify(sortedWindows.map((w) => w.windowId))}`);
 });
-chrome.contextMenus.onClicked.addListener(convertToForgettableCallback(onContextMenuItemClicked));
+chrome.contextMenus.onClicked.addListener((0, utils_1.convertToForgettableCallback)(onContextMenuItemClicked));
 function onContextMenuItemClicked(info, tab) {
     return __awaiter(this, void 0, void 0, function* () {
         if (tab === undefined) {
@@ -118,7 +114,7 @@ function getTargetUrl(info) {
                 throw new Error("info.selectionText is undefined");
             }
             const trimmedText = info.selectionText.trim();
-            if (isURL(trimmedText)) {
+            if ((0, utils_1.isURL)(trimmedText)) {
                 return trimmedText;
             }
             else {
@@ -149,17 +145,6 @@ function createNewTabInOppositeMode(url, incognito) {
             });
         });
     });
-}
-function isURL(text) {
-    let url;
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        url = new URL(text);
-    }
-    catch (e) {
-        return false;
-    }
-    return true;
 }
 
 
@@ -193,6 +178,33 @@ const verifyIncognitoAccess = () => {
     });
 };
 exports.verifyIncognitoAccess = verifyIncognitoAccess;
+
+
+/***/ }),
+/* 2 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isURL = exports.convertToForgettableCallback = void 0;
+function convertToForgettableCallback(promiseFunction) {
+    return (...args) => {
+        void promiseFunction(...args);
+    };
+}
+exports.convertToForgettableCallback = convertToForgettableCallback;
+function isURL(text) {
+    let url;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        url = new URL(text);
+    }
+    catch (e) {
+        return false;
+    }
+    return true;
+}
+exports.isURL = isURL;
 
 
 /***/ })
