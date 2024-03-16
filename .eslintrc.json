@@ -16,9 +16,17 @@
       }
     ],
     "@typescript-eslint/consistent-type-definitions": ["warn", "type"],
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
     "curly": "warn",
     "eqeqeq": "warn",
-    "no-throw-literal": "warn"
+    "no-throw-literal": "warn",
+    "no-warning-comments": [
+      "warn",
+      {
+        "terms": ["todo", "fixme"],
+        "location": "start"
+      }
+    ]
   },
   "ignorePatterns": ["out", "dist", "**/*.d.ts", "*.js"]
 }

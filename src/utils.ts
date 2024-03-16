@@ -16,3 +16,7 @@ export function isURL(text: string): boolean {
   }
   return true;
 }
+
+export function throwExpectedNeverError(value: never): never {
+  throw new Error("Expected never, instead got: " + JSON.stringify(value));
+}
