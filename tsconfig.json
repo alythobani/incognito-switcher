@@ -2,10 +2,9 @@
   "compilerOptions": {
     "strict": true,
     "target": "es6",
-    "moduleResolution": "bundler",
-    "module": "ES6",
+    "module": "CommonJS",
     "esModuleInterop": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "rootDir": "src",
     "outDir": "dist/js",
     "noEmitOnError": true,

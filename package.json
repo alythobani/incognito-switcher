@@ -1,13 +1,16 @@
 {
   "scripts": {
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "webpack watch --config webpack/webpack.config.js",
+    "build": "webpack --config webpack/webpack.config.js"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.263",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard-with-typescript": "^43.0.1",
-    "typescript": "^5.4.2"
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.2",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
   }
 }

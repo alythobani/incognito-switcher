@@ -1,4 +1,10 @@
-"use strict";
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
+/* 0 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,31 +14,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const verifyIncognitoAccess_1 = __webpack_require__(1);
 function convertToForgettableCallback(promiseFunction) {
     return (...args) => {
         void promiseFunction(...args);
     };
 }
-chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
-    if (isAllowedAccess) {
-        return;
-    }
-    const enableAccessLink = `chrome://extensions/?id=${chrome.runtime.id}`;
-    const message = "Please enable incognito access for Incognito Switcher to work properly. Click here to adjust the settings.";
-    chrome.notifications.create({
-        type: "basic",
-        iconUrl: "../icon/icon.png",
-        title: "Enable Incognito Access",
-        message,
-    }, (notificationId) => {
-        chrome.notifications.onClicked.addListener((clickedNotificationId) => {
-            if (clickedNotificationId === notificationId) {
-                void chrome.tabs.create({ url: enableAccessLink });
-                chrome.notifications.clear(notificationId);
-            }
-        });
-    });
-});
+(0, verifyIncognitoAccess_1.verifyIncognitoAccess)();
 chrome.action.onClicked.addListener(convertToForgettableCallback(onActionClicked));
 function onActionClicked(tab) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -172,3 +161,73 @@ function isURL(text) {
     }
     return true;
 }
+
+
+/***/ }),
+/* 1 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.verifyIncognitoAccess = void 0;
+const verifyIncognitoAccess = () => {
+    chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
+        if (isAllowedAccess) {
+            return;
+        }
+        const enableAccessLink = `chrome://extensions/?id=${chrome.runtime.id}`;
+        const message = "Please enable incognito access for Incognito Switcher to work properly. Click here to adjust the settings.";
+        chrome.notifications.create({
+            type: "basic",
+            iconUrl: "../icon/icon.png",
+            title: "Enable Incognito Access",
+            message,
+        }, (notificationId) => {
+            chrome.notifications.onClicked.addListener((clickedNotificationId) => {
+                if (clickedNotificationId === notificationId) {
+                    void chrome.tabs.create({ url: enableAccessLink });
+                    chrome.notifications.clear(notificationId);
+                }
+            });
+        });
+    });
+};
+exports.verifyIncognitoAccess = verifyIncognitoAccess;
+
+
+/***/ })
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__(0);
+/******/ 	
+/******/ })()
+;
