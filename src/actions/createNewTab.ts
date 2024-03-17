@@ -8,7 +8,7 @@ export function incognitoBooleanToMode(incognito: boolean): Mode {
 
 export async function createNewTab({ url, mode }: { url: string; mode: Mode }): Promise<void> {
   const incognito = modeToIncognitoBoolean(mode);
-  const sortedWindows = getSortedWindows();
+  const sortedWindows = await getSortedWindows();
   const targetWindowInfo = sortedWindows.find((windowInfo) => windowInfo.incognito === incognito);
   if (targetWindowInfo === undefined) {
     // TODO - re-query chrome windows and try again

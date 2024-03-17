@@ -1,21 +1,25 @@
 /* Exports */
 
-export function getSortedWindows(): WindowFocusInfo[] {
-  return SortedWindowsProvider.getInstance().getSortedWindows();
+export async function getSortedWindows(): Promise<WindowFocusInfo[]> {
+  const sortedWindowsProvider = await SortedWindowsProvider.getInstance();
+  return sortedWindowsProvider.getSortedWindows();
 }
 
-export function setSortedWindows(sortedWindows: WindowFocusInfo[]): void {
-  SortedWindowsProvider.getInstance().setSortedWindows(sortedWindows);
+export async function setSortedWindows(sortedWindows: WindowFocusInfo[]): Promise<void> {
+  const sortedWindowsProvider = await SortedWindowsProvider.getInstance();
+  sortedWindowsProvider.setSortedWindows(sortedWindows);
 }
 
 /* Implementation */
 
 class SortedWindowsProvider {
+  /* Private fields and methods */
+
   private static instance: SortedWindowsProvider | null = null;
   private sortedWindows: WindowFocusInfo[];
 
-  private constructor() {
-    this.sortedWindows = initializeSortedWindows();
+  private constructor(sortedWindows: WindowFocusInfo[]) {
+    this.sortedWindows = sortedWindows;
     this.listenForWindowChanges();
   }
 
@@ -57,11 +61,12 @@ class SortedWindowsProvider {
     this.sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
   }
 
-  // Exposed methods
+  /* Exposed methods */
 
-  public static getInstance(): SortedWindowsProvider {
+  public static async getInstance(): Promise<SortedWindowsProvider> {
     if (SortedWindowsProvider.instance === null) {
-      SortedWindowsProvider.instance = new SortedWindowsProvider();
+      const sortedWindows = await initializeSortedWindows();
+      SortedWindowsProvider.instance = new SortedWindowsProvider(sortedWindows);
     }
     return SortedWindowsProvider.instance;
   }
@@ -81,12 +86,19 @@ type WindowFocusInfo = {
   incognito: boolean;
 };
 
-const initializeSortedWindows = (): WindowFocusInfo[] => {
+const initializeSortedWindows = async (): Promise<WindowFocusInfo[]> => {
   let sortedWindows: WindowFocusInfo[] = [];
-  chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
-    sortedWindows = windows.map(getNewWindowFocusInfo);
-  });
+  const allWindows = await queryWindows();
+  sortedWindows = allWindows.map(getNewWindowFocusInfo);
   return sortedWindows;
+};
+
+const queryWindows = async (): Promise<chrome.windows.Window[]> => {
+  return await new Promise((resolve) => {
+    chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
+      resolve(windows);
+    });
+  });
 };
 
 const getNewWindowFocusInfo = (window: chrome.windows.Window): WindowFocusInfo => {

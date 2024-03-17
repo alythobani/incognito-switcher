@@ -220,7 +220,7 @@ exports.incognitoBooleanToMode = incognitoBooleanToMode;
 function createNewTab(_a) {
     return __awaiter(this, arguments, void 0, function* ({ url, mode }) {
         const incognito = modeToIncognitoBoolean(mode);
-        const sortedWindows = (0, sortedWindows_1.getSortedWindows)();
+        const sortedWindows = yield (0, sortedWindows_1.getSortedWindows)();
         const targetWindowInfo = sortedWindows.find((windowInfo) => windowInfo.incognito === incognito);
         if (targetWindowInfo === undefined) {
             // TODO - re-query chrome windows and try again
@@ -243,24 +243,39 @@ const modeToIncognitoBoolean = (mode) => mode === "incognito";
 
 /***/ }),
 /* 6 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports) {
 
 
 /* Exports */
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setSortedWindows = exports.getSortedWindows = void 0;
 function getSortedWindows() {
-    return SortedWindowsProvider.getInstance().getSortedWindows();
+    return __awaiter(this, void 0, void 0, function* () {
+        const sortedWindowsProvider = yield SortedWindowsProvider.getInstance();
+        return sortedWindowsProvider.getSortedWindows();
+    });
 }
 exports.getSortedWindows = getSortedWindows;
 function setSortedWindows(sortedWindows) {
-    SortedWindowsProvider.getInstance().setSortedWindows(sortedWindows);
+    return __awaiter(this, void 0, void 0, function* () {
+        const sortedWindowsProvider = yield SortedWindowsProvider.getInstance();
+        sortedWindowsProvider.setSortedWindows(sortedWindows);
+    });
 }
 exports.setSortedWindows = setSortedWindows;
 /* Implementation */
 class SortedWindowsProvider {
-    constructor() {
-        this.sortedWindows = initializeSortedWindows();
+    constructor(sortedWindows) {
+        this.sortedWindows = sortedWindows;
         this.listenForWindowChanges();
     }
     listenForWindowChanges() {
@@ -296,12 +311,15 @@ class SortedWindowsProvider {
     sortWindows() {
         this.sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
     }
-    // Exposed methods
+    /* Exposed methods */
     static getInstance() {
-        if (SortedWindowsProvider.instance === null) {
-            SortedWindowsProvider.instance = new SortedWindowsProvider();
-        }
-        return SortedWindowsProvider.instance;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (SortedWindowsProvider.instance === null) {
+                const sortedWindows = yield initializeSortedWindows();
+                SortedWindowsProvider.instance = new SortedWindowsProvider(sortedWindows);
+            }
+            return SortedWindowsProvider.instance;
+        });
     }
     getSortedWindows() {
         return this.sortedWindows;
@@ -310,14 +328,21 @@ class SortedWindowsProvider {
         this.sortedWindows = sortedWindows;
     }
 }
+/* Private fields and methods */
 SortedWindowsProvider.instance = null;
-const initializeSortedWindows = () => {
+const initializeSortedWindows = () => __awaiter(void 0, void 0, void 0, function* () {
     let sortedWindows = [];
-    chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
-        sortedWindows = windows.map(getNewWindowFocusInfo);
-    });
+    const allWindows = yield queryWindows();
+    sortedWindows = allWindows.map(getNewWindowFocusInfo);
     return sortedWindows;
-};
+});
+const queryWindows = () => __awaiter(void 0, void 0, void 0, function* () {
+    return yield new Promise((resolve) => {
+        chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
+            resolve(windows);
+        });
+    });
+});
 const getNewWindowFocusInfo = (window) => {
     if (window.id === undefined) {
         throw new Error("window.id is undefined");
