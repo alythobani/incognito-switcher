@@ -1,3 +1,13 @@
+import { modeToIncognitoBoolean, type Mode } from "../actions/createNewTab";
+
+/* Types */
+
+type WindowFocusInfo = {
+  windowId: number;
+  lastFocused: Date;
+  incognito: boolean;
+};
+
 /* Exports */
 
 export async function getSortedWindows(): Promise<WindowFocusInfo[]> {
@@ -5,12 +15,16 @@ export async function getSortedWindows(): Promise<WindowFocusInfo[]> {
   return sortedWindowsProvider.getSortedWindows();
 }
 
-export async function setSortedWindows(sortedWindows: WindowFocusInfo[]): Promise<void> {
-  const sortedWindowsProvider = await SortedWindowsProvider.getInstance();
-  sortedWindowsProvider.setSortedWindows(sortedWindows);
+export async function getLastFocusedWindowIdOfMode(mode: Mode): Promise<number | null> {
+  const incognito = modeToIncognitoBoolean(mode);
+  const sortedWindows = await getSortedWindows();
+  const lastFocusedWindowInfo = sortedWindows.find(
+    (windowInfo) => windowInfo.incognito === incognito
+  );
+  return lastFocusedWindowInfo?.windowId ?? null;
 }
 
-/* Implementation */
+/* Provider Class */
 
 class SortedWindowsProvider {
   /* Private fields and methods */
@@ -31,7 +45,7 @@ class SortedWindowsProvider {
 
   private listenForWindowCreation(): void {
     chrome.windows.onCreated.addListener((window) => {
-      this.sortedWindows.push(getNewWindowFocusInfo(window));
+      this.sortedWindows.unshift(getNewWindowFocusInfo(window));
     });
   }
 
@@ -43,22 +57,8 @@ class SortedWindowsProvider {
 
   private listenForWindowFocusChange(): void {
     chrome.windows.onFocusChanged.addListener((windowId) => {
-      if (windowId === chrome.windows.WINDOW_ID_NONE) {
-        return;
-      }
-      for (const windowInfo of this.sortedWindows) {
-        if (windowInfo.windowId === windowId) {
-          windowInfo.lastFocused = new Date();
-          break;
-        }
-      }
-      // TODO: Handle focused window not found in sortedWindows (add it)
-      this.sortWindows();
+      void onWindowFocus({ windowId, sortedWindowsProvider: this });
     });
-  }
-
-  private sortWindows(): void {
-    this.sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
   }
 
   /* Exposed methods */
@@ -78,13 +78,13 @@ class SortedWindowsProvider {
   public setSortedWindows(sortedWindows: WindowFocusInfo[]): void {
     this.sortedWindows = sortedWindows;
   }
+
+  public sortWindows(): void {
+    this.sortedWindows.sort((a, b) => b.lastFocused.valueOf() - a.lastFocused.valueOf());
+  }
 }
 
-type WindowFocusInfo = {
-  windowId: number;
-  lastFocused: Date;
-  incognito: boolean;
-};
+/* Implementation */
 
 const initializeSortedWindows = async (): Promise<WindowFocusInfo[]> => {
   let sortedWindows: WindowFocusInfo[] = [];
@@ -110,4 +110,23 @@ const getNewWindowFocusInfo = (window: chrome.windows.Window): WindowFocusInfo =
     lastFocused: new Date(),
     incognito: window.incognito,
   };
+};
+
+const onWindowFocus = async ({
+  windowId,
+  sortedWindowsProvider,
+}: {
+  windowId: number;
+  sortedWindowsProvider: SortedWindowsProvider;
+}): Promise<void> => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    return;
+  }
+  const sortedWindows = sortedWindowsProvider.getSortedWindows();
+  const windowFocusInfo = sortedWindows.find((windowInfo) => windowInfo.windowId === windowId);
+  if (windowFocusInfo === undefined) {
+    throw new Error(`Window from onFocusChanged not found: ${windowId}`);
+  }
+  windowFocusInfo.lastFocused = new Date();
+  sortedWindowsProvider.sortWindows();
 };

@@ -1,22 +1,23 @@
-import { getSortedWindows } from "../providers/sortedWindows";
+import { getLastFocusedWindowIdOfMode } from "../providers/sortedWindows";
 
-/* Exports */
+export type Mode = "normal" | "incognito";
+
+export function modeToIncognitoBoolean(mode: Mode): boolean {
+  return mode === "incognito";
+}
 
 export function incognitoBooleanToMode(incognito: boolean): Mode {
   return incognito ? "incognito" : "normal";
 }
 
 export async function createNewTab({ url, mode }: { url: string; mode: Mode }): Promise<void> {
-  const incognito = modeToIncognitoBoolean(mode);
-  const sortedWindows = await getSortedWindows();
-  const targetWindowInfo = sortedWindows.find((windowInfo) => windowInfo.incognito === incognito);
-  if (targetWindowInfo === undefined) {
-    // TODO - re-query chrome windows and try again
+  const lastFocusedWindowId = await getLastFocusedWindowIdOfMode(mode);
+  if (lastFocusedWindowId === null) {
     console.log("No target window found, creating new window.");
-    await chrome.windows.create({ url, incognito });
+    await chrome.windows.create({ url, incognito: modeToIncognitoBoolean(mode) });
     return;
   }
-  chrome.windows.update(targetWindowInfo.windowId, { focused: true }, (focusedWindow) => {
+  chrome.windows.update(lastFocusedWindowId, { focused: true }, (focusedWindow) => {
     void chrome.tabs.create({
       windowId: focusedWindow.id,
       url,
@@ -24,9 +25,3 @@ export async function createNewTab({ url, mode }: { url: string; mode: Mode }): 
     });
   });
 }
-
-/* Implementation */
-
-type Mode = "normal" | "incognito";
-
-const modeToIncognitoBoolean = (mode: Mode): boolean => mode === "incognito";
