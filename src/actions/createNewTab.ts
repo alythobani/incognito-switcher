@@ -17,11 +17,10 @@ export async function createNewTab({ url, mode }: { url: string; mode: Mode }): 
     await chrome.windows.create({ url, incognito: modeToIncognitoBoolean(mode) });
     return;
   }
-  chrome.windows.update(lastFocusedWindowId, { focused: true }, (focusedWindow) => {
-    void chrome.tabs.create({
-      windowId: focusedWindow.id,
-      url,
-      active: true,
-    });
+  const newlyFocusedWindow = await chrome.windows.update(lastFocusedWindowId, { focused: true });
+  await chrome.tabs.create({
+    windowId: newlyFocusedWindow.id,
+    url,
+    active: true,
   });
 }

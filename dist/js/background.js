@@ -228,12 +228,11 @@ function createNewTab(_a) {
             yield chrome.windows.create({ url, incognito: modeToIncognitoBoolean(mode) });
             return;
         }
-        chrome.windows.update(lastFocusedWindowId, { focused: true }, (focusedWindow) => {
-            void chrome.tabs.create({
-                windowId: focusedWindow.id,
-                url,
-                active: true,
-            });
+        const newlyFocusedWindow = yield chrome.windows.update(lastFocusedWindowId, { focused: true });
+        yield chrome.tabs.create({
+            windowId: newlyFocusedWindow.id,
+            url,
+            active: true,
         });
     });
 }
