@@ -86,8 +86,8 @@ function onContextMenuItemClicked(info, tab) {
         const url = getContextMenuTargetUrl(info);
         const isCurrentlyIncognito = tab.incognito;
         const newMode = (0, createNewTab_1.incognitoBooleanToMode)(!isCurrentlyIncognito);
-        yield (0, createNewTab_1.createNewTab)({ url, mode: newMode });
-        if (shouldCloseCurrentTab(info)) {
+        const didCreateTab = yield (0, createNewTab_1.createNewTab)({ url, mode: newMode });
+        if (didCreateTab && shouldCloseCurrentTab(info)) {
             yield (0, closeTab_1.closeTab)(tab);
         }
     });
@@ -143,7 +143,7 @@ const shouldCloseCurrentTab = (info) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.throwExpectedNeverError = exports.isURL = exports.convertToForgettableCallback = void 0;
+exports.throwExpectedNeverError = exports.isInvalidChromeUrl = exports.isURL = exports.convertToForgettableCallback = void 0;
 function convertToForgettableCallback(promiseFunction) {
     return (...args) => {
         void promiseFunction(...args);
@@ -162,6 +162,10 @@ function isURL(text) {
     return true;
 }
 exports.isURL = isURL;
+function isInvalidChromeUrl(url) {
+    return url.startsWith("chrome://") && !url.startsWith("chrome://newtab/");
+}
+exports.isInvalidChromeUrl = isInvalidChromeUrl;
 function throwExpectedNeverError(value) {
     throw new Error("Expected never, instead got: " + JSON.stringify(value));
 }
@@ -212,6 +216,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createNewTab = exports.incognitoBooleanToMode = exports.modeToIncognitoBoolean = void 0;
 const sortedWindows_1 = __webpack_require__(6);
+const utils_1 = __webpack_require__(3);
 function modeToIncognitoBoolean(mode) {
     return mode === "incognito";
 }
@@ -220,13 +225,21 @@ function incognitoBooleanToMode(incognito) {
     return incognito ? "incognito" : "normal";
 }
 exports.incognitoBooleanToMode = incognitoBooleanToMode;
+/**
+ * Creates a new tab in the last focused window of the given mode. Creates a new window if no window of the given mode exists.
+ * @returns Whether the tab was successfully created
+ */
 function createNewTab(_a) {
     return __awaiter(this, arguments, void 0, function* ({ url, mode }) {
+        if ((0, utils_1.isInvalidChromeUrl)(url) && mode === "incognito") {
+            console.warn("Cannot open chrome:// URL in incognito mode: " + url);
+            return false;
+        }
         const lastFocusedWindowId = yield (0, sortedWindows_1.getLastFocusedWindowIdOfMode)(mode);
         if (lastFocusedWindowId === null) {
             console.log("No target window found, creating new window.");
             yield chrome.windows.create({ url, incognito: modeToIncognitoBoolean(mode) });
-            return;
+            return true;
         }
         const newlyFocusedWindow = yield chrome.windows.update(lastFocusedWindowId, { focused: true });
         yield chrome.tabs.create({
@@ -234,6 +247,7 @@ function createNewTab(_a) {
             url,
             active: true,
         });
+        return true;
     });
 }
 exports.createNewTab = createNewTab;
@@ -400,8 +414,10 @@ const onMainAction = (tab) => __awaiter(void 0, void 0, void 0, function* () {
     }
     const isCurrentlyIncognito = tab.incognito;
     const newMode = (0, createNewTab_1.incognitoBooleanToMode)(!isCurrentlyIncognito);
-    yield (0, createNewTab_1.createNewTab)({ url: tab.url, mode: newMode });
-    yield (0, closeTab_1.closeTab)(tab);
+    const didCreateTab = yield (0, createNewTab_1.createNewTab)({ url: tab.url, mode: newMode });
+    if (didCreateTab) {
+        yield (0, closeTab_1.closeTab)(tab);
+    }
 });
 exports.onMainAction = onMainAction;
 

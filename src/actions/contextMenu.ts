@@ -18,9 +18,9 @@ export async function onContextMenuItemClicked(
   const isCurrentlyIncognito = tab.incognito;
   const newMode = incognitoBooleanToMode(!isCurrentlyIncognito);
 
-  await createNewTab({ url, mode: newMode });
+  const didCreateTab = await createNewTab({ url, mode: newMode });
 
-  if (shouldCloseCurrentTab(info)) {
+  if (didCreateTab && shouldCloseCurrentTab(info)) {
     await closeTab(tab);
   }
 }

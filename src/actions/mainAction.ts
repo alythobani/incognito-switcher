@@ -10,7 +10,10 @@ export const onMainAction = async (tab: chrome.tabs.Tab): Promise<void> => {
 
   const isCurrentlyIncognito = tab.incognito;
   const newMode = incognitoBooleanToMode(!isCurrentlyIncognito);
-  await createNewTab({ url: tab.url, mode: newMode });
 
-  await closeTab(tab);
+  const didCreateTab = await createNewTab({ url: tab.url, mode: newMode });
+
+  if (didCreateTab) {
+    await closeTab(tab);
+  }
 };
