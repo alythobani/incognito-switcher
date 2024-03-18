@@ -10,6 +10,10 @@ type WindowFocusInfo = {
 
 /* Exports */
 
+export async function startSortedWindowsInstance(): Promise<void> {
+  await SortedWindowsProvider.getInstance();
+}
+
 export async function getSortedWindows(): Promise<WindowFocusInfo[]> {
   const sortedWindowsProvider = await SortedWindowsProvider.getInstance();
   return sortedWindowsProvider.getSortedWindows();
