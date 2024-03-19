@@ -1,6 +1,6 @@
-import { incognitoBooleanToMode } from "../models/incognitoMode";
-import { closeTab } from "./tabActions/closeTab";
-import { createNewTab } from "./tabActions/createNewTab";
+import { incognitoBooleanToMode } from "../../models/incognitoMode";
+import { closeTab } from "./closeTab";
+import { createNewTab } from "./createNewTab";
 
 export const switchTabToOppositeMode = async (tab: chrome.tabs.Tab): Promise<void> => {
   console.log("switchTabToOppositeMode", tab.url, tab.incognito);
