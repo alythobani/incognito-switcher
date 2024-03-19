@@ -58,12 +58,14 @@ class WindowInfosProvider {
     chrome.windows.onCreated.addListener((window) => {
       const newWindowFocusInfo = getNewWindowFocusInfo({ window, isFocused: true });
       this.windowInfoById.set(newWindowFocusInfo.windowId, newWindowFocusInfo);
+      log(`Window ${newWindowFocusInfo.windowId} created`);
     });
   }
 
   private listenForWindowRemoval(): void {
     chrome.windows.onRemoved.addListener((windowId) => {
       this.windowInfoById.delete(windowId);
+      log(`Window ${windowId} removed`);
     });
   }
 
