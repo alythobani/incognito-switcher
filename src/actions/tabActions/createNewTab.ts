@@ -1,7 +1,7 @@
 import { modeToIncognitoBoolean, type IncognitoMode } from "../../models/incognitoMode";
 import { getLastFocusedWindowIdOfMode } from "../../providers/windowInfos";
 import { isInvalidChromeUrl } from "../../utils/chromeUtils";
-import { log } from "../../utils/logger";
+import { logWarning } from "../../utils/logger";
 import { createNewTabInWindow } from "./createNewTabInWindow";
 
 /**
@@ -16,12 +16,12 @@ export async function createNewTab({
   mode: IncognitoMode;
 }): Promise<boolean> {
   if (isInvalidChromeUrl(url) && mode === "incognito") {
-    console.warn("Cannot open chrome:// URL in incognito mode: " + url);
+    logWarning("Cannot open chrome:// URL in incognito mode: " + url);
     return false;
   }
   const lastFocusedWindowId = await getLastFocusedWindowIdOfMode(mode);
   if (lastFocusedWindowId === null) {
-    log("No target window found, creating new window.");
+    logWarning("No target window found, creating new window.");
     await chrome.windows.create({ url, incognito: modeToIncognitoBoolean(mode) });
     return true;
   }

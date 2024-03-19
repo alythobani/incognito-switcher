@@ -1,6 +1,6 @@
 /* Types */
 
-import { modeToIncognitoBoolean, type IncognitoMode } from "../models/incognitoMode";
+import { type IncognitoMode } from "../models/incognitoMode";
 import { TabInfo } from "../models/tabInfo";
 import { WindowInfo } from "../models/windowInfo";
 import { log, logSuccess, logWarning } from "../utils/logger";
@@ -20,12 +20,13 @@ export async function getWindowInfos(): Promise<WindowInfoById> {
 
 export async function getLastFocusedWindowIdOfMode(mode: IncognitoMode): Promise<number | null> {
   const windowInfosProvider = await WindowInfosProvider.getInstance();
+  log(`Looking for last focused ${mode} window on ${windowInfosProvider.getInstanceName()}`);
   const windowInfoById = windowInfosProvider.getWindowInfoById();
-  const windowInfosSortedByLastFocused = Object.values(windowInfoById).sort(
+  const windowInfosSortedByLastFocused = Array.from(windowInfoById.values()).sort(
     (a, b) => b.lastFocused.getTime() - a.lastFocused.getTime()
   );
   const lastFocusedWindowInfoOfMode = windowInfosSortedByLastFocused.find(
-    (windowInfo) => windowInfo.incognito === modeToIncognitoBoolean(mode)
+    (windowInfo) => windowInfo.mode === mode
   );
   return lastFocusedWindowInfoOfMode?.windowId ?? null;
 }
@@ -150,17 +151,15 @@ const onWindowFocus = async ({
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     return;
   }
-  const windowInfoById = windowInfosProvider.getWindowInfoById();
-  const windowInfo = windowInfoById.get(windowId);
+  const windowInfo = windowInfosProvider.getWindowInfo(windowId);
   if (windowInfo === undefined) {
     logWarning(`Window ${windowId} not found; returning without updating lastFocused`);
     return;
   }
-  console.log(`Updating ${windowInfo.getName()} on ${windowInfosProvider.getInstanceName()}`);
-  const previousLastFocused = windowInfo.lastFocused;
+  const oldLastFocusedStr = windowInfo.lastFocused.toLocaleString();
   windowInfo.lastFocused = new Date();
   log(
-    `Window ${windowId} lastFocused updated: ${previousLastFocused.toLocaleString()} => ${windowInfo.lastFocused.toLocaleString()}`
+    `${windowInfo.getName()} lastFocused updated on ${windowInfosProvider.getInstanceName()} (previously ${oldLastFocusedStr})`
   );
 };
 
@@ -179,7 +178,7 @@ const onTabCreated = ({
   }
   const newTabInfo = new TabInfo(tab);
   windowInfo.tabInfoById.set(newTabInfo.tabId, newTabInfo);
-  log(`WindowInfo ${windowId} updated with new Tab ${tab.id} created in Window ${windowId}`);
+  log(`${windowInfo.getName()} updated with newly created Tab ${tab.id}`);
 };
 
 const onTabActivated = async ({
