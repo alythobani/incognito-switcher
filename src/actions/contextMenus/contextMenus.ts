@@ -4,7 +4,7 @@ import { onOpenTabInOppositeMode } from "./openTabInOppositeMode";
 
 /* Types */
 
-type ContextMenuItem = chrome.contextMenus.CreateProperties & {
+type ContextMenuItem = Omit<chrome.contextMenus.CreateProperties, "onclick"> & {
   onClick: ContextMenuClickHandler | null;
 };
 
@@ -15,25 +15,28 @@ export type ContextMenuClickHandler = (
 
 /* Exports */
 
-const contextMenus: Record<string, ContextMenuItem> = {
-  openLinkInOppositeMode: {
-    id: "openLinkInOppositeMode",
-    title: "Open this link in Incognito/Normal",
-    contexts: ["link"],
-    onClick: onOpenLinkInOppositeMode,
-  },
-  openTabInOppositeMode: {
-    id: "openTabInOppositeMode",
-    title: "Move this tab to Incognito/Normal",
-    contexts: ["page"],
-    onClick: onOpenTabInOppositeMode,
-  },
-  moveTabToAnotherWindow: {
-    id: "moveTabToAnotherWindow",
-    title: "Move this tab to another window",
-    contexts: ["page"],
-    onClick: null,
-  },
+export const getContextMenuItems = (): Record<string, ContextMenuItem> => {
+  const contextMenuItemById: Record<string, ContextMenuItem> = {
+    openLinkInOppositeMode: {
+      id: "openLinkInOppositeMode",
+      title: "Open this link in Incognito/Normal",
+      contexts: ["link"],
+      onClick: onOpenLinkInOppositeMode,
+    },
+    openTabInOppositeMode: {
+      id: "openTabInOppositeMode",
+      title: "Move this tab to Incognito/Normal",
+      contexts: ["page"],
+      onClick: onOpenTabInOppositeMode,
+    },
+    moveTabToAnotherWindow: {
+      id: "moveTabToAnotherWindow",
+      title: "Move this tab to another window",
+      contexts: ["page"],
+      onClick: null,
+    },
+  };
+  return contextMenuItemById;
 };
 
 export const onContextMenuItemClicked: ContextMenuClickHandler = async (info, tab) => {
