@@ -2,6 +2,21 @@
   "manifest_version": 3,
   "version": "1.2.0",
   "action": {},
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      }
+    },
+    "mainCommand": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+I",
+        "mac": "Command+Shift+I"
+      },
+      "description": "Switch to the next incognito window (main command)"
+    }
+  },
   "permissions": ["tabs", "contextMenus", "notifications"],
   "icons": {
     "16": "icon/16.png",
