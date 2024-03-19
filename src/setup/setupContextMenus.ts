@@ -1,5 +1,5 @@
 import { onContextMenuItemClicked } from "../actions/contextMenus/contextMenus";
-import { getSortedWindows } from "../providers/sortedWindows";
+import { getWindowInfos } from "../providers/sortedWindows";
 import { convertToCallback } from "../utils/utils";
 
 /* Exports */
@@ -33,8 +33,8 @@ const createContextMenus = async (): Promise<void> => {
 };
 
 const createInitialMoveToWindowSubmenus = async (): Promise<void> => {
-  const sortedWindows = await getSortedWindows();
-  sortedWindows.forEach((windowFocusInfo) => {
+  const windowInfoById = await getWindowInfos();
+  windowInfoById.forEach((windowFocusInfo) => {
     chrome.contextMenus.create({
       id: `moveTabToWindow${windowFocusInfo.windowId}`,
       parentId: "moveTabToAnotherWindow",

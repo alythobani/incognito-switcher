@@ -1,4 +1,4 @@
-import { startSortedWindowsInstance } from "./providers/sortedWindows";
+import { startTrackingWindowInfos } from "./providers/sortedWindows";
 import { setupCommands } from "./setup/setupCommands";
 import { setupContextMenus } from "./setup/setupContextMenus";
 import { setupMainAction } from "./setup/setupMainAction";
@@ -7,7 +7,7 @@ import { log } from "./utils/logger";
 
 log("Background script running!");
 
-void startSortedWindowsInstance();
+void startTrackingWindowInfos();
 
 verifyIncognitoAccess();
 
