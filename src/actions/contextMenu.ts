@@ -1,7 +1,7 @@
 import { getContextMenuTypeFromId } from "../setup/contextMenus/setupContextMenus";
 import { isURL, throwExpectedNeverError } from "../utils/utils";
-import { closeTab } from "./closeTab";
-import { createNewTab, incognitoBooleanToMode } from "./createNewTab";
+import { closeTab } from "./tabActions/closeTab";
+import { createNewTab, incognitoBooleanToMode } from "./tabActions/createNewTab";
 
 /* Exports */
 

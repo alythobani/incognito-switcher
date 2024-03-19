@@ -1,5 +1,5 @@
-import { getLastFocusedWindowIdOfMode } from "../providers/sortedWindows";
-import { isInvalidChromeUrl } from "../utils/chromeUtils";
+import { getLastFocusedWindowIdOfMode } from "../../providers/sortedWindows";
+import { isInvalidChromeUrl } from "../../utils/chromeUtils";
 
 export type Mode = "normal" | "incognito";
 

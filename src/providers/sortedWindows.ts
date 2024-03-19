@@ -1,4 +1,4 @@
-import { modeToIncognitoBoolean, type Mode } from "../actions/createNewTab";
+import { modeToIncognitoBoolean, type Mode } from "../actions/tabActions/createNewTab";
 
 /* Types */
 
