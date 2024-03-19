@@ -36,7 +36,7 @@ function customLogger(logger: typeof console.log, color?: Color): LoggerFn {
 
 function coloredLogger(logger: LoggerFn, color: Color): LoggerFn {
   return (message: string, ...args: unknown[]): void => {
-    colorLog(logger, color, message, args);
+    colorLog(logger, color, message, ...args);
   };
 }
 
