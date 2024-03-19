@@ -1,5 +1,5 @@
 import { modeToIncognitoBoolean, type IncognitoMode } from "../../models/incognitoMode";
-import { getLastFocusedWindowIdOfMode } from "../../providers/sortedWindows";
+import { getLastFocusedWindowIdOfMode } from "../../providers/windowInfos";
 import { isInvalidChromeUrl } from "../../utils/chromeUtils";
 import { log } from "../../utils/logger";
 import { createNewTabInWindow } from "./createNewTabInWindow";

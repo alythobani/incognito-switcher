@@ -1,4 +1,4 @@
-import { startTrackingWindowInfos } from "./providers/sortedWindows";
+import { startTrackingWindowInfos } from "./providers/windowInfos";
 import { setupCommands } from "./setup/setupCommands";
 import { setupContextMenus } from "./setup/setupContextMenus";
 import { setupMainAction } from "./setup/setupMainAction";

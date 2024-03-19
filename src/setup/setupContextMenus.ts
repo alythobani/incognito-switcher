@@ -1,5 +1,5 @@
 import { onContextMenuItemClicked } from "../actions/contextMenus/contextMenus";
-import { getWindowInfos } from "../providers/sortedWindows";
+import { getWindowInfos } from "../providers/windowInfos";
 import { convertToCallback } from "../utils/utils";
 
 /* Exports */

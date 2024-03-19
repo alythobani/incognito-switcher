@@ -77,8 +77,8 @@ class WindowInfosProvider {
 
   public static async getInstance(): Promise<WindowInfosProvider> {
     if (WindowInfosProvider.instance === null) {
-      const windowInfos = await initializeWindowInfos();
-      WindowInfosProvider.instance = new WindowInfosProvider(windowInfos);
+      const windowInfoById = await initializeWindowInfos();
+      WindowInfosProvider.instance = new WindowInfosProvider(windowInfoById);
     }
     return WindowInfosProvider.instance;
   }
@@ -99,7 +99,7 @@ const initializeWindowInfos = async (): Promise<WindowInfoById> => {
     const newWindowInfo = getNewWindowFocusInfo({ window, isFocused: window.focused });
     windowInfoById.set(newWindowInfo.windowId, newWindowInfo);
   });
-  log("Initial windowInfos:", windowInfoById);
+  log("Initial windowInfoById:", windowInfoById);
   return windowInfoById;
 };
 
