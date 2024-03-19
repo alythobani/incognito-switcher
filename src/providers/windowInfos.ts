@@ -1,7 +1,7 @@
 /* Types */
 
 import { modeToIncognitoBoolean, type IncognitoMode } from "../models/incognitoMode";
-import { log } from "../utils/logger";
+import { log, logWarning } from "../utils/logger";
 
 type WindowInfo = {
   windowId: number;
@@ -91,10 +91,9 @@ class WindowInfosProvider {
 /* Implementation */
 
 const initializeWindowInfos = async (): Promise<WindowInfoById> => {
-  log("Initializing windowInfoById");
   const windowInfoById: WindowInfoById = new Map();
   const allWindows = await queryWindows();
-  log("All queried windows:", allWindows);
+  log("Initial queried windows:", allWindows);
   allWindows.forEach((window) => {
     const newWindowInfo = getNewWindowFocusInfo({ window, isFocused: window.focused });
     windowInfoById.set(newWindowInfo.windowId, newWindowInfo);
@@ -150,7 +149,8 @@ const onWindowFocus = async ({
   const windowInfoById = windowInfosProvider.getWindowInfos();
   const windowInfo = windowInfoById.get(windowId);
   if (windowInfo === undefined) {
-    throw new Error(`Window from onFocusChanged not found: ${windowId}`);
+    logWarning(`Window ${windowId} not found; returning without updating lastFocused`);
+    return;
   }
   const previousLastFocused = windowInfo.lastFocused;
   windowInfo.lastFocused = new Date();
