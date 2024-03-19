@@ -1,7 +1,6 @@
-// TODO - rename to convertToCallback
-export function convertToForgettableCallback<
-  PromiseFunction extends (...args: any[]) => Promise<void>
->(promiseFunction: PromiseFunction): (...args: Parameters<PromiseFunction>) => void {
+export function convertToCallback<PromiseFunction extends (...args: any[]) => Promise<void>>(
+  promiseFunction: PromiseFunction
+): (...args: Parameters<PromiseFunction>) => void {
   return (...args) => {
     void promiseFunction(...args);
   };

@@ -145,7 +145,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createNewTab = exports.incognitoBooleanToMode = exports.modeToIncognitoBoolean = void 0;
 const sortedWindows_1 = __webpack_require__(1);
-const chromeUtils_1 = __webpack_require__(13);
+const chromeUtils_1 = __webpack_require__(3);
 function modeToIncognitoBoolean(mode) {
     return mode === "incognito";
 }
@@ -188,30 +188,15 @@ exports.createNewTab = createNewTab;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.throwExpectedNeverError = exports.isURL = exports.convertToForgettableCallback = void 0;
-// TODO - rename to convertToCallback
-function convertToForgettableCallback(promiseFunction) {
-    return (...args) => {
-        void promiseFunction(...args);
-    };
+exports.getExtensionSettingsURL = exports.isInvalidChromeUrl = void 0;
+function isInvalidChromeUrl(url) {
+    return url.startsWith("chrome://") && !url.startsWith("chrome://newtab/");
 }
-exports.convertToForgettableCallback = convertToForgettableCallback;
-function isURL(text) {
-    let url;
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        url = new URL(text);
-    }
-    catch (e) {
-        return false;
-    }
-    return true;
+exports.isInvalidChromeUrl = isInvalidChromeUrl;
+function getExtensionSettingsURL() {
+    return `chrome://extensions/?id=${chrome.runtime.id}`;
 }
-exports.isURL = isURL;
-function throwExpectedNeverError(value) {
-    throw new Error("Expected never, instead got: " + JSON.stringify(value));
-}
-exports.throwExpectedNeverError = throwExpectedNeverError;
+exports.getExtensionSettingsURL = getExtensionSettingsURL;
 
 
 /***/ }),
@@ -222,11 +207,11 @@ exports.throwExpectedNeverError = throwExpectedNeverError;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getContextMenuTypeFromId = exports.setupContextMenus = void 0;
 const contextMenu_1 = __webpack_require__(5);
-const utils_1 = __webpack_require__(3);
+const utils_1 = __webpack_require__(6);
 /* Exports */
 function setupContextMenus() {
     chrome.runtime.onInstalled.addListener(createContextMenus);
-    chrome.contextMenus.onClicked.addListener((0, utils_1.convertToForgettableCallback)(contextMenu_1.onContextMenuItemClicked));
+    chrome.contextMenus.onClicked.addListener((0, utils_1.convertToCallback)(contextMenu_1.onContextMenuItemClicked));
 }
 exports.setupContextMenus = setupContextMenus;
 function getContextMenuTypeFromId(contextMenuItemId) {
@@ -287,8 +272,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.onContextMenuItemClicked = void 0;
 const setupContextMenus_1 = __webpack_require__(4);
-const utils_1 = __webpack_require__(3);
-const closeTab_1 = __webpack_require__(6);
+const utils_1 = __webpack_require__(6);
+const closeTab_1 = __webpack_require__(7);
 const createNewTab_1 = __webpack_require__(2);
 /* Exports */
 function onContextMenuItemClicked(info, tab) {
@@ -352,6 +337,37 @@ const shouldCloseCurrentTab = (info) => {
 
 /***/ }),
 /* 6 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.throwExpectedNeverError = exports.isURL = exports.convertToCallback = void 0;
+function convertToCallback(promiseFunction) {
+    return (...args) => {
+        void promiseFunction(...args);
+    };
+}
+exports.convertToCallback = convertToCallback;
+function isURL(text) {
+    let url;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        url = new URL(text);
+    }
+    catch (e) {
+        return false;
+    }
+    return true;
+}
+exports.isURL = isURL;
+function throwExpectedNeverError(value) {
+    throw new Error("Expected never, instead got: " + JSON.stringify(value));
+}
+exports.throwExpectedNeverError = throwExpectedNeverError;
+
+
+/***/ }),
+/* 7 */
 /***/ (function(__unused_webpack_module, exports) {
 
 
@@ -378,13 +394,13 @@ exports.closeTab = closeTab;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setupCommands = void 0;
-const mainCommand_1 = __webpack_require__(8);
+const mainCommand_1 = __webpack_require__(9);
 function setupCommands() {
     chrome.commands.onCommand.addListener((command, tab) => {
         switch (command) {
@@ -397,32 +413,6 @@ function setupCommands() {
     });
 }
 exports.setupCommands = setupCommands;
-
-
-/***/ }),
-/* 8 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.onMainCommand = void 0;
-const switchTabToOppositeMode_1 = __webpack_require__(9);
-function onMainCommand(tab) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log("onMainCommand", tab, tab.url, tab.incognito);
-        yield (0, switchTabToOppositeMode_1.switchTabToOppositeMode)(tab);
-    });
-}
-exports.onMainCommand = onMainCommand;
 
 
 /***/ }),
@@ -440,8 +430,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.onMainCommand = void 0;
+const switchTabToOppositeMode_1 = __webpack_require__(10);
+function onMainCommand(tab) {
+    return __awaiter(this, void 0, void 0, function* () {
+        console.log("onMainCommand", tab, tab.url, tab.incognito);
+        yield (0, switchTabToOppositeMode_1.switchTabToOppositeMode)(tab);
+    });
+}
+exports.onMainCommand = onMainCommand;
+
+
+/***/ }),
+/* 10 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.switchTabToOppositeMode = void 0;
-const closeTab_1 = __webpack_require__(6);
+const closeTab_1 = __webpack_require__(7);
 const createNewTab_1 = __webpack_require__(2);
 const switchTabToOppositeMode = (tab) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("switchTabToOppositeMode", tab.url, tab.incognito);
@@ -459,22 +475,22 @@ exports.switchTabToOppositeMode = switchTabToOppositeMode;
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setupMainAction = void 0;
-const mainAction_1 = __webpack_require__(11);
-const utils_1 = __webpack_require__(3);
+const mainAction_1 = __webpack_require__(12);
+const utils_1 = __webpack_require__(6);
 function setupMainAction() {
-    chrome.action.onClicked.addListener((0, utils_1.convertToForgettableCallback)(mainAction_1.onMainAction));
+    chrome.action.onClicked.addListener((0, utils_1.convertToCallback)(mainAction_1.onMainAction));
 }
 exports.setupMainAction = setupMainAction;
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -489,7 +505,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.onMainAction = void 0;
-const chromeUtils_1 = __webpack_require__(13);
+const chromeUtils_1 = __webpack_require__(3);
 const createNewTab_1 = __webpack_require__(2);
 const onMainAction = (tab) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("onMainAction", tab, tab.url, tab.incognito);
@@ -499,13 +515,13 @@ exports.onMainAction = onMainAction;
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.verifyIncognitoAccess = void 0;
-const chromeUtils_1 = __webpack_require__(13);
+const chromeUtils_1 = __webpack_require__(3);
 const verifyIncognitoAccess = () => {
     chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
         if (isAllowedAccess) {
@@ -528,23 +544,6 @@ const verifyIncognitoAccess = () => {
     });
 };
 exports.verifyIncognitoAccess = verifyIncognitoAccess;
-
-
-/***/ }),
-/* 13 */
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getExtensionSettingsURL = exports.isInvalidChromeUrl = void 0;
-function isInvalidChromeUrl(url) {
-    return url.startsWith("chrome://") && !url.startsWith("chrome://newtab/");
-}
-exports.isInvalidChromeUrl = isInvalidChromeUrl;
-function getExtensionSettingsURL() {
-    return `chrome://extensions/?id=${chrome.runtime.id}`;
-}
-exports.getExtensionSettingsURL = getExtensionSettingsURL;
 
 
 /***/ })
@@ -583,9 +582,9 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const sortedWindows_1 = __webpack_require__(1);
 const setupContextMenus_1 = __webpack_require__(4);
-const setupCommands_1 = __webpack_require__(7);
-const setupMainAction_1 = __webpack_require__(10);
-const verifyIncognitoAccess_1 = __webpack_require__(12);
+const setupCommands_1 = __webpack_require__(8);
+const setupMainAction_1 = __webpack_require__(11);
+const verifyIncognitoAccess_1 = __webpack_require__(13);
 void (0, sortedWindows_1.startSortedWindowsInstance)();
 (0, verifyIncognitoAccess_1.verifyIncognitoAccess)();
 (0, setupMainAction_1.setupMainAction)();

@@ -1,11 +1,11 @@
 import { onContextMenuItemClicked } from "../../actions/contextMenu";
-import { convertToForgettableCallback } from "../../utils/utils";
+import { convertToCallback } from "../../utils/utils";
 
 /* Exports */
 
 export function setupContextMenus(): void {
   chrome.runtime.onInstalled.addListener(createContextMenus);
-  chrome.contextMenus.onClicked.addListener(convertToForgettableCallback(onContextMenuItemClicked));
+  chrome.contextMenus.onClicked.addListener(convertToCallback(onContextMenuItemClicked));
 }
 
 export function getContextMenuTypeFromId(
