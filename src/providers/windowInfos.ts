@@ -3,7 +3,7 @@
 import { modeToIncognitoBoolean, type IncognitoMode } from "../models/incognitoMode";
 import { TabInfo } from "../models/tabInfo";
 import { WindowInfo } from "../models/windowInfo";
-import { log, logWarning } from "../utils/logger";
+import { log, logSuccess, logWarning } from "../utils/logger";
 
 type WindowInfoById = Map<number, WindowInfo>;
 
@@ -37,6 +37,7 @@ class WindowInfosProvider {
 
   private static instance: WindowInfosProvider | null = null;
   private readonly windowInfoById: WindowInfoById;
+  private readonly instanceId: number = Math.floor(Math.random() * 10000);
 
   private constructor(windowInfoById: WindowInfoById) {
     this.windowInfoById = windowInfoById;
@@ -97,9 +98,15 @@ class WindowInfosProvider {
   public static async getInstance(): Promise<WindowInfosProvider> {
     if (WindowInfosProvider.instance === null) {
       const windowInfoById = await initializeWindowInfoById();
-      WindowInfosProvider.instance = new WindowInfosProvider(windowInfoById);
+      const newInstance = new WindowInfosProvider(windowInfoById);
+      WindowInfosProvider.instance = newInstance;
+      logSuccess(`${newInstance.getInstanceName()} created`);
     }
     return WindowInfosProvider.instance;
+  }
+
+  public getInstanceName(): string {
+    return `Instance ${this.instanceId}`;
   }
 
   public getWindowInfoById(): WindowInfoById {
@@ -149,6 +156,7 @@ const onWindowFocus = async ({
     logWarning(`Window ${windowId} not found; returning without updating lastFocused`);
     return;
   }
+  console.log(`Updating ${windowInfo.getName()} on ${windowInfosProvider.getInstanceName()}`);
   const previousLastFocused = windowInfo.lastFocused;
   windowInfo.lastFocused = new Date();
   log(
