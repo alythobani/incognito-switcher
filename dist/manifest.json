@@ -3,18 +3,12 @@
   "version": "1.2.0",
   "action": {},
   "commands": {
-    "_execute_action": {
+    "switchIncognitoMode": {
       "suggested_key": {
-        "default": "Ctrl+Shift+U",
-        "mac": "Command+Shift+U"
-      }
-    },
-    "mainCommand": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+I",
-        "mac": "Command+Shift+I"
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
       },
-      "description": "Switch to the next incognito window (main command)"
+      "description": "Switch to incognito/normal (opens in most recently accessed window)"
     }
   },
   "permissions": ["tabs", "contextMenus", "notifications"],
