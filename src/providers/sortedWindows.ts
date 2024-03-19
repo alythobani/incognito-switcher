@@ -6,6 +6,7 @@ type WindowFocusInfo = {
   windowId: number;
   lastFocused: Date;
   incognito: boolean;
+  name: string | null;
 };
 
 /* Exports */
@@ -93,13 +94,14 @@ class SortedWindowsProvider {
 const initializeSortedWindows = async (): Promise<WindowFocusInfo[]> => {
   let sortedWindows: WindowFocusInfo[] = [];
   const allWindows = await queryWindows();
+  console.log("queryWindows", allWindows);
   sortedWindows = allWindows.map(getNewWindowFocusInfo);
   return sortedWindows;
 };
 
 const queryWindows = async (): Promise<chrome.windows.Window[]> => {
   return await new Promise((resolve) => {
-    chrome.windows.getAll({ windowTypes: ["normal"] }, (windows) => {
+    chrome.windows.getAll({ windowTypes: ["normal"], populate: true }, (windows) => {
       resolve(windows);
     });
   });
@@ -113,7 +115,16 @@ const getNewWindowFocusInfo = (window: chrome.windows.Window): WindowFocusInfo =
     windowId: window.id,
     lastFocused: new Date(),
     incognito: window.incognito,
+    name: getActiveTabTitleIfExists(window),
   };
+};
+
+const getActiveTabTitleIfExists = (window: chrome.windows.Window): string | null => {
+  const activeTabTitle = window.tabs?.find((tab) => tab.active)?.title;
+  if (activeTabTitle === undefined) {
+    return null;
+  }
+  return activeTabTitle;
 };
 
 const onWindowFocus = async ({

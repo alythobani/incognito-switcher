@@ -1,73 +1,72 @@
 import { incognitoBooleanToMode } from "../models/incognitoMode";
-import { getContextMenuTypeFromId } from "../setup/contextMenus/setupContextMenus";
-import { isURL, throwExpectedNeverError } from "../utils/utils";
+import { switchIncognitoMode } from "./commands/switchIncognitoMode";
 import { closeTab } from "./tabActions/closeTab";
 import { createNewTab } from "./tabActions/createNewTab";
+import { createNewTabInWindow } from "./tabActions/createNewTabInWindow";
 
 /* Exports */
 
-export async function onContextMenuItemClicked(
+type ContextMenuClickHandler = (
   info: chrome.contextMenus.OnClickData,
   tab?: chrome.tabs.Tab
-): Promise<void> {
-  if (tab === undefined) {
-    throw new Error("Context menu clicked with no active tab");
+) => Promise<void>;
+
+export const onContextMenuItemClicked: ContextMenuClickHandler = async (info, tab) => {
+  switch (info.menuItemId) {
+    case "openLinkInOppositeMode":
+      await onOpenLinkInOppositeMode(info, tab);
+      return;
+    case "openTabInOppositeMode":
+      await onOpenTabInOppositeMode(info, tab);
+      return;
+    case "moveTabToAnotherWindow":
+      return;
+    default: {
+      await onMoveTabToWindow(info, tab);
+    }
   }
-
-  const url = getContextMenuTargetUrl(info);
-
-  const isCurrentlyIncognito = tab.incognito;
-  const newMode = incognitoBooleanToMode(!isCurrentlyIncognito);
-
-  const didCreateTab = await createNewTab({ url, mode: newMode });
-
-  if (didCreateTab && shouldCloseCurrentTab(info)) {
-    await closeTab(tab);
-  }
-}
+};
 
 /* Implementation */
 
-const getContextMenuTargetUrl = (info: chrome.contextMenus.OnClickData): string => {
-  const contextMenuType = getContextMenuTypeFromId(info.menuItemId);
-  switch (contextMenuType) {
-    case "link":
-      if (info.linkUrl === undefined) {
-        throw new Error(`info.linkUrl is undefined: ${JSON.stringify(info)}`);
-      }
-      return info.linkUrl;
-    case "page":
-      return info.pageUrl;
-    case "selection": {
-      if (info.selectionText === undefined) {
-        throw new Error(`info.selectionText is undefined: ${JSON.stringify(info)}`);
-      }
-      return getSelectionTextTargetUrl(info.selectionText);
-    }
-    default:
-      throwExpectedNeverError(contextMenuType);
+const onOpenLinkInOppositeMode: ContextMenuClickHandler = async (info, tab) => {
+  if (tab === undefined) {
+    throw new Error(`onOpenLinkInOppositeMode called with no active tab: ${JSON.stringify(info)}`);
   }
+  if (info.linkUrl === undefined) {
+    throw new Error(`info.linkUrl is undefined: ${JSON.stringify(info)}`);
+  }
+  const newMode = incognitoBooleanToMode(!tab.incognito);
+  await createNewTab({ url: info.linkUrl, mode: newMode });
 };
 
-const getSelectionTextTargetUrl = (selectionText: string): string => {
-  const trimmedText = selectionText.trim();
-  if (isURL(trimmedText)) {
-    return trimmedText;
+const onOpenTabInOppositeMode: ContextMenuClickHandler = async (info, tab) => {
+  if (tab === undefined) {
+    throw new Error(`onOpenTabInOppositeMode called with no active tab: ${JSON.stringify(info)}`);
   }
-  const encodedText = encodeURIComponent(trimmedText);
-  return "https://www.google.com/search?q=" + encodedText;
+  await switchIncognitoMode(tab);
 };
 
-const shouldCloseCurrentTab = (info: chrome.contextMenus.OnClickData): boolean => {
-  const contextMenuType = getContextMenuTypeFromId(info.menuItemId);
-  switch (contextMenuType) {
-    case "link":
-      return false;
-    case "page":
-      return true;
-    case "selection":
-      return false;
-    default:
-      throwExpectedNeverError(contextMenuType);
+const onMoveTabToWindow: ContextMenuClickHandler = async (info, tab) => {
+  if (tab === undefined) {
+    throw new Error(`onMoveTabToWindow called with no active tab: ${JSON.stringify(info)}`);
   }
+  const windowId = parseWindowIdFromMenuItemId(info.menuItemId);
+  if (tab.url === undefined) {
+    throw new Error(`tab.url is undefined: ${JSON.stringify(tab)}`);
+  }
+  await createNewTabInWindow({ url: tab.url, windowId });
+  await closeTab(tab);
+};
+
+const parseWindowIdFromMenuItemId = (menuItemId: string | number): number => {
+  if (typeof menuItemId === "number") {
+    throw new Error(`Unrecognized menuItemId of type number: ${menuItemId}`);
+  }
+  const moveTabToWindowRegex = /^moveTabToWindow(\d+)$/;
+  const windowId = menuItemId.match(moveTabToWindowRegex)?.[1];
+  if (windowId === undefined) {
+    throw new Error(`menuItemId did not match moveTabToWindowRegex: ${menuItemId}`);
+  }
+  return parseInt(windowId);
 };

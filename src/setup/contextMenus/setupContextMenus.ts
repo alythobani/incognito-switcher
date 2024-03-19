@@ -1,66 +1,45 @@
 import { onContextMenuItemClicked } from "../../actions/contextMenu";
+import { getSortedWindows } from "../../providers/sortedWindows";
 import { convertToCallback } from "../../utils/utils";
 
 /* Exports */
 
 export function setupContextMenus(): void {
-  chrome.runtime.onInstalled.addListener(createContextMenus);
+  chrome.runtime.onInstalled.addListener(convertToCallback(createContextMenus));
   chrome.contextMenus.onClicked.addListener(convertToCallback(onContextMenuItemClicked));
-}
-
-export function getContextMenuTypeFromId(
-  contextMenuItemId: chrome.contextMenus.OnClickData["menuItemId"]
-): ExtensionContextMenuType {
-  const unexpectedMenuItemIdMsg = `Unexpected context menu item ID: ${contextMenuItemId}`;
-
-  if (typeof contextMenuItemId !== "string") {
-    throw new Error(unexpectedMenuItemIdMsg);
-  }
-  const contextTypeRegexStr = extensionContextMenuTypes.join("|");
-  const contextMenuItemIdRegex = new RegExp(`^(?<contextMenuType>${contextTypeRegexStr})Item$`);
-
-  const menuItemIdRegexMatch = contextMenuItemId.match(contextMenuItemIdRegex);
-  if (menuItemIdRegexMatch === null) {
-    throw new Error(unexpectedMenuItemIdMsg);
-  }
-
-  const contextMenuType = menuItemIdRegexMatch.groups?.contextMenuType;
-  if (contextMenuType === undefined) {
-    throw new Error(unexpectedMenuItemIdMsg);
-  }
-
-  return contextMenuType as ExtensionContextMenuType;
 }
 
 /* Implementation */
 
-type ExtensionContextMenuType = Extract<
-  chrome.contextMenus.ContextType,
-  "link" | "page" | "selection"
->;
-const extensionContextMenuTypes: readonly ExtensionContextMenuType[] = [
-  "link",
-  "page",
-  "selection",
-];
-type ExtensionContextMenuItemId = `${ExtensionContextMenuType}Item`;
-
-const createContextMenus = (): void => {
-  createContextMenu("link");
-  createContextMenu("page");
-  createContextMenu("selection");
-};
-
-const createContextMenu = (contextMenuType: ExtensionContextMenuType): void => {
+const createContextMenus = async (): Promise<void> => {
   chrome.contextMenus.create({
-    id: getContextMenuItemId(contextMenuType),
-    title: chrome.i18n.getMessage(`${contextMenuType}ContextMenu`),
-    contexts: [contextMenuType],
+    id: "openLinkInOppositeMode",
+    title: "Open this link in Incognito/Normal",
+    contexts: ["link"],
   });
+
+  chrome.contextMenus.create({
+    id: "openTabInOppositeMode",
+    contexts: ["page"],
+    title: "Move this tab to Incognito/Normal",
+  });
+
+  chrome.contextMenus.create({
+    id: "moveTabToAnotherWindow",
+    contexts: ["page"],
+    title: "Move this tab to another window",
+  });
+  await createInitialMoveToWindowSubmenus();
 };
 
-const getContextMenuItemId = (
-  contextMenuType: ExtensionContextMenuType
-): ExtensionContextMenuItemId => {
-  return `${contextMenuType}Item`;
+const createInitialMoveToWindowSubmenus = async (): Promise<void> => {
+  const sortedWindows = await getSortedWindows();
+  sortedWindows.forEach((windowFocusInfo) => {
+    chrome.contextMenus.create({
+      id: `moveTabToWindow${windowFocusInfo.windowId}`,
+      parentId: "moveTabToAnotherWindow",
+      contexts: ["page"],
+      title: windowFocusInfo.name ?? `WindowId: ${windowFocusInfo.windowId}`,
+    });
+  });
 };

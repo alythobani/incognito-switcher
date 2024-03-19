@@ -1,6 +1,7 @@
 import { modeToIncognitoBoolean, type IncognitoMode } from "../../models/incognitoMode";
 import { getLastFocusedWindowIdOfMode } from "../../providers/sortedWindows";
 import { isInvalidChromeUrl } from "../../utils/chromeUtils";
+import { createNewTabInWindow } from "./createNewTabInWindow";
 
 /**
  * Creates a new tab in the last focused window of the given mode. Creates a new window if no window of the given mode exists.
@@ -23,11 +24,6 @@ export async function createNewTab({
     await chrome.windows.create({ url, incognito: modeToIncognitoBoolean(mode) });
     return true;
   }
-  const newlyFocusedWindow = await chrome.windows.update(lastFocusedWindowId, { focused: true });
-  await chrome.tabs.create({
-    windowId: newlyFocusedWindow.id,
-    url,
-    active: true,
-  });
+  await createNewTabInWindow({ url, windowId: lastFocusedWindowId });
   return true;
 }
