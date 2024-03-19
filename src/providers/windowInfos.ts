@@ -1,6 +1,7 @@
 /* Types */
 
 import { modeToIncognitoBoolean, type IncognitoMode } from "../models/incognitoMode";
+import { TabInfo } from "../models/tabInfo";
 import { WindowInfo } from "../models/windowInfo";
 import { log, logWarning } from "../utils/logger";
 
@@ -14,12 +15,12 @@ export async function startTrackingWindowInfos(): Promise<void> {
 
 export async function getWindowInfos(): Promise<WindowInfoById> {
   const windowInfosProvider = await WindowInfosProvider.getInstance();
-  return windowInfosProvider.getWindowInfos();
+  return windowInfosProvider.getWindowInfoById();
 }
 
 export async function getLastFocusedWindowIdOfMode(mode: IncognitoMode): Promise<number | null> {
   const windowInfosProvider = await WindowInfosProvider.getInstance();
-  const windowInfoById = windowInfosProvider.getWindowInfos();
+  const windowInfoById = windowInfosProvider.getWindowInfoById();
   const windowInfosSortedByLastFocused = Object.values(windowInfoById).sort(
     (a, b) => b.lastFocused.getTime() - a.lastFocused.getTime()
   );
@@ -39,7 +40,12 @@ class WindowInfosProvider {
 
   private constructor(windowInfoById: WindowInfoById) {
     this.windowInfoById = windowInfoById;
+    this.listenForWindowAndTabChanges();
+  }
+
+  private listenForWindowAndTabChanges(): void {
     this.listenForWindowChanges();
+    this.listenForTabChanges();
   }
 
   private listenForWindowChanges(): void {
@@ -69,24 +75,45 @@ class WindowInfosProvider {
     });
   }
 
+  private listenForTabChanges(): void {
+    this.listenForTabCreation();
+    this.listenForActiveTabChange();
+  }
+
+  private listenForTabCreation(): void {
+    chrome.tabs.onCreated.addListener((tab) => {
+      onTabCreated({ tab, windowInfosProvider: this });
+    });
+  }
+
+  private listenForActiveTabChange(): void {
+    chrome.tabs.onActivated.addListener((activeInfo) => {
+      void onTabActivated({ activeInfo, windowInfosProvider: this });
+    });
+  }
+
   /* Exposed methods */
 
   public static async getInstance(): Promise<WindowInfosProvider> {
     if (WindowInfosProvider.instance === null) {
-      const windowInfoById = await initializeWindowInfos();
+      const windowInfoById = await initializeWindowInfoById();
       WindowInfosProvider.instance = new WindowInfosProvider(windowInfoById);
     }
     return WindowInfosProvider.instance;
   }
 
-  public getWindowInfos(): WindowInfoById {
+  public getWindowInfoById(): WindowInfoById {
     return this.windowInfoById;
+  }
+
+  public getWindowInfo(windowId: number): WindowInfo | undefined {
+    return this.windowInfoById.get(windowId);
   }
 }
 
 /* Implementation */
 
-const initializeWindowInfos = async (): Promise<WindowInfoById> => {
+const initializeWindowInfoById = async (): Promise<WindowInfoById> => {
   const windowInfoById: WindowInfoById = new Map();
   const allWindows = await queryWindows();
   log("Initial queried windows:", allWindows);
@@ -116,7 +143,7 @@ const onWindowFocus = async ({
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     return;
   }
-  const windowInfoById = windowInfosProvider.getWindowInfos();
+  const windowInfoById = windowInfosProvider.getWindowInfoById();
   const windowInfo = windowInfoById.get(windowId);
   if (windowInfo === undefined) {
     logWarning(`Window ${windowId} not found; returning without updating lastFocused`);
@@ -127,4 +154,47 @@ const onWindowFocus = async ({
   log(
     `Window ${windowId} lastFocused updated: ${previousLastFocused.toLocaleString()} => ${windowInfo.lastFocused.toLocaleString()}`
   );
+};
+
+const onTabCreated = ({
+  tab,
+  windowInfosProvider,
+}: {
+  tab: chrome.tabs.Tab;
+  windowInfosProvider: WindowInfosProvider;
+}): void => {
+  const { windowId } = tab;
+  const windowInfo = windowInfosProvider.getWindowInfo(windowId);
+  if (windowInfo === undefined) {
+    logWarning(`WindowInfo ${windowId} not found; returning early from onTabCreated`);
+    return;
+  }
+  const newTabInfo = new TabInfo(tab);
+  windowInfo.tabInfoById.set(newTabInfo.tabId, newTabInfo);
+  log(`WindowInfo ${windowId} updated with new Tab ${tab.id} created in Window ${windowId}`);
+};
+
+const onTabActivated = async ({
+  activeInfo,
+  windowInfosProvider,
+}: {
+  activeInfo: chrome.tabs.TabActiveInfo;
+  windowInfosProvider: WindowInfosProvider;
+}): Promise<void> => {
+  const { tabId, windowId } = activeInfo;
+  const windowInfoById = windowInfosProvider.getWindowInfoById();
+  const windowInfo = windowInfoById.get(windowId);
+  if (windowInfo === undefined) {
+    logWarning(`WindowInfo ${windowId} not found; returning early from onTabActivated`);
+    return;
+  }
+  const tabInfo = windowInfo.tabInfoById.get(tabId);
+  if (tabInfo === undefined) {
+    logWarning(
+      `TabInfo ${tabId} not found in WindowInfo ${windowId}; returning early from onTabActivated`
+    );
+    return;
+  }
+  tabInfo.isActive = true;
+  log(`WindowInfo ${windowId} updated with new active Tab ${tabId}`);
 };

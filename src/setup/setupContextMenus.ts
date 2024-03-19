@@ -34,12 +34,12 @@ const createContextMenus = async (): Promise<void> => {
 
 const createInitialMoveToWindowSubmenus = async (): Promise<void> => {
   const windowInfoById = await getWindowInfos();
-  windowInfoById.forEach((windowInfo) => {
+  for (const [windowIdx, windowInfo] of windowInfoById.entries()) {
     chrome.contextMenus.create({
       id: `moveTabToWindow${windowInfo.windowId}`,
       parentId: "moveTabToAnotherWindow",
       contexts: ["page"],
-      title: windowInfo.activeTabTitle ?? `WindowId: ${windowInfo.windowId}`,
+      title: windowInfo.getContextMenuItemTitle(windowIdx),
     });
-  });
+  }
 };
