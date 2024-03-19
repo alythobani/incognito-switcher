@@ -1,6 +1,6 @@
-import { onContextMenuItemClicked } from "../../actions/contextMenus/contextMenus";
-import { getSortedWindows } from "../../providers/sortedWindows";
-import { convertToCallback } from "../../utils/utils";
+import { onContextMenuItemClicked } from "../actions/contextMenus/contextMenus";
+import { getSortedWindows } from "../providers/sortedWindows";
+import { convertToCallback } from "../utils/utils";
 
 /* Exports */
 

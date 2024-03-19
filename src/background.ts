@@ -1,6 +1,6 @@
 import { startSortedWindowsInstance } from "./providers/sortedWindows";
-import { setupContextMenus } from "./setup/contextMenus/setupContextMenus";
 import { setupCommands } from "./setup/setupCommands";
+import { setupContextMenus } from "./setup/setupContextMenus";
 import { setupMainAction } from "./setup/setupMainAction";
 import { verifyIncognitoAccess } from "./setup/verifyIncognitoAccess";
 
