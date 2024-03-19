@@ -1,14 +1,8 @@
 /* Types */
 
 import { modeToIncognitoBoolean, type IncognitoMode } from "../models/incognitoMode";
+import { WindowInfo } from "../models/windowInfo";
 import { log, logWarning } from "../utils/logger";
-
-type WindowInfo = {
-  windowId: number;
-  lastFocused: Date;
-  incognito: boolean;
-  name: string | null;
-};
 
 type WindowInfoById = Map<number, WindowInfo>;
 
@@ -56,9 +50,9 @@ class WindowInfosProvider {
 
   private listenForWindowCreation(): void {
     chrome.windows.onCreated.addListener((window) => {
-      const newWindowFocusInfo = getNewWindowFocusInfo({ window, isFocused: true });
-      this.windowInfoById.set(newWindowFocusInfo.windowId, newWindowFocusInfo);
-      log(`Window ${newWindowFocusInfo.windowId} created`);
+      const newWindowInfo = new WindowInfo({ window, isFocused: true });
+      this.windowInfoById.set(newWindowInfo.windowId, newWindowInfo);
+      log(`Window ${newWindowInfo.windowId} created`);
     });
   }
 
@@ -97,7 +91,7 @@ const initializeWindowInfos = async (): Promise<WindowInfoById> => {
   const allWindows = await queryWindows();
   log("Initial queried windows:", allWindows);
   allWindows.forEach((window) => {
-    const newWindowInfo = getNewWindowFocusInfo({ window, isFocused: window.focused });
+    const newWindowInfo = new WindowInfo({ window, isFocused: window.focused });
     windowInfoById.set(newWindowInfo.windowId, newWindowInfo);
   });
   log("Initial windowInfoById:", windowInfoById);
@@ -110,32 +104,6 @@ const queryWindows = async (): Promise<chrome.windows.Window[]> => {
       resolve(windows);
     });
   });
-};
-
-const getNewWindowFocusInfo = ({
-  window,
-  isFocused,
-}: {
-  window: chrome.windows.Window;
-  isFocused: boolean;
-}): WindowInfo => {
-  if (window.id === undefined) {
-    throw new Error("window.id is undefined");
-  }
-  return {
-    windowId: window.id,
-    lastFocused: isFocused ? new Date() : new Date(0),
-    incognito: window.incognito,
-    name: getActiveTabTitleIfExists(window),
-  };
-};
-
-const getActiveTabTitleIfExists = (window: chrome.windows.Window): string | null => {
-  const activeTabTitle = window.tabs?.find((tab) => tab.active)?.title;
-  if (activeTabTitle === undefined) {
-    return null;
-  }
-  return activeTabTitle;
 };
 
 const onWindowFocus = async ({
