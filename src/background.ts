@@ -3,6 +3,9 @@ import { setupCommands } from "./setup/setupCommands";
 import { setupContextMenus } from "./setup/setupContextMenus";
 import { setupMainAction } from "./setup/setupMainAction";
 import { verifyIncognitoAccess } from "./setup/verifyIncognitoAccess";
+import { log } from "./utils/logger";
+
+log("Background script running!");
 
 void startSortedWindowsInstance();
 
@@ -13,3 +16,7 @@ setupMainAction();
 setupCommands();
 
 setupContextMenus();
+
+chrome.runtime.onSuspend.addListener(() => {
+  log("Background script suspended");
+});

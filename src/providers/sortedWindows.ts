@@ -1,6 +1,7 @@
 /* Types */
 
 import { modeToIncognitoBoolean, type IncognitoMode } from "../models/incognitoMode";
+import { log } from "../utils/logger";
 
 type WindowFocusInfo = {
   windowId: number;
@@ -92,11 +93,12 @@ class SortedWindowsProvider {
 /* Implementation */
 
 const initializeSortedWindows = async (): Promise<WindowFocusInfo[]> => {
+  log("Initializing sortedWindows");
   let sortedWindows: WindowFocusInfo[] = [];
   const allWindows = await queryWindows();
-  console.log("queryWindows", allWindows);
+  log("All queried windows:", allWindows);
   sortedWindows = allWindows.map(getNewWindowFocusInfo);
-  console.log("initial sortedWindows", sortedWindows);
+  log("Initial sortedWindows:", sortedWindows);
   return sortedWindows;
 };
 

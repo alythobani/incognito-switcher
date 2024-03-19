@@ -15,26 +15,26 @@ export type ContextMenuClickHandler = (
 
 /* Exports */
 
-export const contextMenus: ContextMenuItem[] = [
-  {
+const contextMenus: Record<string, ContextMenuItem> = {
+  openLinkInOppositeMode: {
     id: "openLinkInOppositeMode",
     title: "Open this link in Incognito/Normal",
     contexts: ["link"],
     onClick: onOpenLinkInOppositeMode,
   },
-  {
+  openTabInOppositeMode: {
     id: "openTabInOppositeMode",
     title: "Move this tab to Incognito/Normal",
     contexts: ["page"],
     onClick: onOpenTabInOppositeMode,
   },
-  {
+  moveTabToAnotherWindow: {
     id: "moveTabToAnotherWindow",
     title: "Move this tab to another window",
     contexts: ["page"],
     onClick: null,
   },
-];
+};
 
 export const onContextMenuItemClicked: ContextMenuClickHandler = async (info, tab) => {
   switch (info.menuItemId) {
