@@ -1,4 +1,4 @@
-import { onMainAction } from "../actions/mainAction";
+import { onMainAction } from "../actions/mainAction/mainAction";
 import { convertToCallback } from "../utils/utils";
 
 export function setupMainAction(): void {
