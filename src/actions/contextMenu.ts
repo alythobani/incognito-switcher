@@ -1,7 +1,8 @@
+import { incognitoBooleanToMode } from "../models/incognitoMode";
 import { getContextMenuTypeFromId } from "../setup/contextMenus/setupContextMenus";
 import { isURL, throwExpectedNeverError } from "../utils/utils";
 import { closeTab } from "./tabActions/closeTab";
-import { createNewTab, incognitoBooleanToMode } from "./tabActions/createNewTab";
+import { createNewTab } from "./tabActions/createNewTab";
 
 /* Exports */
 

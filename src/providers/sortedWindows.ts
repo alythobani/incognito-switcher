@@ -1,6 +1,6 @@
-import { modeToIncognitoBoolean, type Mode } from "../actions/tabActions/createNewTab";
-
 /* Types */
+
+import { modeToIncognitoBoolean, type IncognitoMode } from "../models/incognitoMode";
 
 type WindowFocusInfo = {
   windowId: number;
@@ -19,7 +19,7 @@ export async function getSortedWindows(): Promise<WindowFocusInfo[]> {
   return sortedWindowsProvider.getSortedWindows();
 }
 
-export async function getLastFocusedWindowIdOfMode(mode: Mode): Promise<number | null> {
+export async function getLastFocusedWindowIdOfMode(mode: IncognitoMode): Promise<number | null> {
   const incognito = modeToIncognitoBoolean(mode);
   const sortedWindows = await getSortedWindows();
   const lastFocusedWindowInfo = sortedWindows.find(

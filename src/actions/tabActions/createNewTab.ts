@@ -1,21 +1,18 @@
+import { modeToIncognitoBoolean, type IncognitoMode } from "../../models/incognitoMode";
 import { getLastFocusedWindowIdOfMode } from "../../providers/sortedWindows";
 import { isInvalidChromeUrl } from "../../utils/chromeUtils";
-
-export type Mode = "normal" | "incognito";
-
-export function modeToIncognitoBoolean(mode: Mode): boolean {
-  return mode === "incognito";
-}
-
-export function incognitoBooleanToMode(incognito: boolean): Mode {
-  return incognito ? "incognito" : "normal";
-}
 
 /**
  * Creates a new tab in the last focused window of the given mode. Creates a new window if no window of the given mode exists.
  * @returns Whether the tab was successfully created
  */
-export async function createNewTab({ url, mode }: { url: string; mode: Mode }): Promise<boolean> {
+export async function createNewTab({
+  url,
+  mode,
+}: {
+  url: string;
+  mode: IncognitoMode;
+}): Promise<boolean> {
   if (isInvalidChromeUrl(url) && mode === "incognito") {
     console.warn("Cannot open chrome:// URL in incognito mode: " + url);
     return false;
