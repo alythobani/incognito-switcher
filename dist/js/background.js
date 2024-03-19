@@ -145,7 +145,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.createNewTab = exports.incognitoBooleanToMode = exports.modeToIncognitoBoolean = void 0;
 const sortedWindows_1 = __webpack_require__(1);
-const utils_1 = __webpack_require__(3);
+const chromeUtils_1 = __webpack_require__(13);
 function modeToIncognitoBoolean(mode) {
     return mode === "incognito";
 }
@@ -160,7 +160,7 @@ exports.incognitoBooleanToMode = incognitoBooleanToMode;
  */
 function createNewTab(_a) {
     return __awaiter(this, arguments, void 0, function* ({ url, mode }) {
-        if ((0, utils_1.isInvalidChromeUrl)(url) && mode === "incognito") {
+        if ((0, chromeUtils_1.isInvalidChromeUrl)(url) && mode === "incognito") {
             console.warn("Cannot open chrome:// URL in incognito mode: " + url);
             return false;
         }
@@ -188,7 +188,7 @@ exports.createNewTab = createNewTab;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.throwExpectedNeverError = exports.isInvalidChromeUrl = exports.isURL = exports.convertToForgettableCallback = void 0;
+exports.throwExpectedNeverError = exports.isURL = exports.convertToForgettableCallback = void 0;
 // TODO - rename to convertToCallback
 function convertToForgettableCallback(promiseFunction) {
     return (...args) => {
@@ -208,10 +208,6 @@ function isURL(text) {
     return true;
 }
 exports.isURL = isURL;
-function isInvalidChromeUrl(url) {
-    return url.startsWith("chrome://") && !url.startsWith("chrome://newtab/");
-}
-exports.isInvalidChromeUrl = isInvalidChromeUrl;
 function throwExpectedNeverError(value) {
     throw new Error("Expected never, instead got: " + JSON.stringify(value));
 }
@@ -493,27 +489,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.onMainAction = void 0;
+const chromeUtils_1 = __webpack_require__(13);
 const createNewTab_1 = __webpack_require__(2);
 const onMainAction = (tab) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("onMainAction", tab, tab.url, tab.incognito);
-    yield (0, createNewTab_1.createNewTab)({ url: `chrome://extensions/?id=${chrome.runtime.id}`, mode: "normal" });
+    yield (0, createNewTab_1.createNewTab)({ url: (0, chromeUtils_1.getExtensionSettingsURL)(), mode: "normal" });
 });
 exports.onMainAction = onMainAction;
 
 
 /***/ }),
 /* 12 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.verifyIncognitoAccess = void 0;
+const chromeUtils_1 = __webpack_require__(13);
 const verifyIncognitoAccess = () => {
     chrome.extension.isAllowedIncognitoAccess((isAllowedAccess) => {
         if (isAllowedAccess) {
             return;
         }
-        const enableAccessLink = `chrome://extensions/?id=${chrome.runtime.id}`;
         const message = "Please enable incognito access for Incognito Switcher to work properly. Click here to adjust the settings.";
         chrome.notifications.create({
             type: "basic",
@@ -523,7 +520,7 @@ const verifyIncognitoAccess = () => {
         }, (notificationId) => {
             chrome.notifications.onClicked.addListener((clickedNotificationId) => {
                 if (clickedNotificationId === notificationId) {
-                    void chrome.tabs.create({ url: enableAccessLink });
+                    void chrome.tabs.create({ url: (0, chromeUtils_1.getExtensionSettingsURL)() });
                     chrome.notifications.clear(notificationId);
                 }
             });
@@ -531,6 +528,23 @@ const verifyIncognitoAccess = () => {
     });
 };
 exports.verifyIncognitoAccess = verifyIncognitoAccess;
+
+
+/***/ }),
+/* 13 */
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getExtensionSettingsURL = exports.isInvalidChromeUrl = void 0;
+function isInvalidChromeUrl(url) {
+    return url.startsWith("chrome://") && !url.startsWith("chrome://newtab/");
+}
+exports.isInvalidChromeUrl = isInvalidChromeUrl;
+function getExtensionSettingsURL() {
+    return `chrome://extensions/?id=${chrome.runtime.id}`;
+}
+exports.getExtensionSettingsURL = getExtensionSettingsURL;
 
 
 /***/ })

@@ -1,5 +1,5 @@
 import { onContextMenuItemClicked } from "../../actions/contextMenu";
-import { convertToForgettableCallback } from "../../utils";
+import { convertToForgettableCallback } from "../../utils/utils";
 
 /* Exports */
 
