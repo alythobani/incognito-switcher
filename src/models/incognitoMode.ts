@@ -7,3 +7,8 @@ export function modeToIncognitoBoolean(mode: IncognitoMode): boolean {
 export function incognitoBooleanToMode(incognito: boolean): IncognitoMode {
   return incognito ? "incognito" : "normal";
 }
+
+export function getOppositeMode(tab: chrome.tabs.Tab): IncognitoMode {
+  const isCurrentlyIncognito = tab.incognito;
+  return incognitoBooleanToMode(!isCurrentlyIncognito);
+}

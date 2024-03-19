@@ -96,6 +96,7 @@ const initializeSortedWindows = async (): Promise<WindowFocusInfo[]> => {
   const allWindows = await queryWindows();
   console.log("queryWindows", allWindows);
   sortedWindows = allWindows.map(getNewWindowFocusInfo);
+  console.log("initial sortedWindows", sortedWindows);
   return sortedWindows;
 };
 
