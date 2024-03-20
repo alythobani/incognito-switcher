@@ -58,7 +58,7 @@ class WindowInfosProvider {
 
   private listenForWindowCreation(): void {
     chrome.windows.onCreated.addListener((window) => {
-      const newWindowInfo = new WindowInfo({ window, isFocused: true });
+      const newWindowInfo = new WindowInfo({ window, index: this.windowInfoById.size });
       this.windowInfoById.set(newWindowInfo.windowId, newWindowInfo);
       log(`Window ${newWindowInfo.windowId} created`);
     });
@@ -125,8 +125,8 @@ const initializeWindowInfoById = async (): Promise<WindowInfoById> => {
   const windowInfoById: WindowInfoById = new Map();
   const allWindows = await queryWindows();
   log("Initial queried windows:", allWindows);
-  allWindows.forEach((window) => {
-    const newWindowInfo = new WindowInfo({ window, isFocused: window.focused });
+  allWindows.forEach((window, index) => {
+    const newWindowInfo = new WindowInfo({ window, index });
     windowInfoById.set(newWindowInfo.windowId, newWindowInfo);
   });
   log("Initial windowInfoById:", windowInfoById);

@@ -3,24 +3,26 @@ import { TabInfo } from "./tabInfo";
 
 export class WindowInfo {
   windowId: number;
+  index: number;
   lastFocused: Date;
   mode: IncognitoMode;
   tabInfoById: Map<number, TabInfo>;
 
-  constructor({ window, isFocused }: { window: chrome.windows.Window; isFocused: boolean }) {
+  constructor({ window, index }: { window: chrome.windows.Window; index: number }) {
     if (window.id === undefined) {
       throw new Error(
         `Cannot construct WindowInfo, window.id is undefined: ${JSON.stringify(window)}`
       );
     }
     this.windowId = window.id;
-    this.lastFocused = isFocused ? new Date() : new Date(0);
+    this.index = index;
+    this.lastFocused = window.focused ? new Date() : new Date(0);
     this.mode = incognitoBooleanToMode(window.incognito);
     this.tabInfoById = initializeTabInfoById(window.tabs ?? []);
   }
 
   getName(): string {
-    return `Window ${this.windowId}`;
+    return `Window ${this.index + 1}`;
   }
 
   getActiveTabName(): string {
@@ -32,7 +34,7 @@ export class WindowInfo {
     return Array.from(this.tabInfoById.values()).find((tabInfo) => tabInfo.isActive);
   }
 
-  getContextMenuItemTitle(windowIdx: number): string {
+  getContextMenuItemTitle(index: number): string {
     const windowName = this.getName();
     const activeTabName = this.getActiveTabName();
     const numTabs = this.tabInfoById.size;
