@@ -1,7 +1,6 @@
 import { getOppositeMode } from "../../models/incognitoMode";
 import { log } from "../../utils/logger";
-import { closeTab } from "../tabActions/closeTab";
-import { createTabInLastFocusedWindowOfMode } from "../tabActions/createTabInLastFocusedWindow";
+import { closeTab, createTabInLastFocusedWindowOfMode } from "../tabActions";
 
 export async function switchIncognitoMode(tab: chrome.tabs.Tab): Promise<void> {
   log("switchIncognitoMode", tab.url, tab.incognito);

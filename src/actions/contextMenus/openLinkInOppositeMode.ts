@@ -1,5 +1,5 @@
 import { getOppositeMode } from "../../models/incognitoMode";
-import { createTabInLastFocusedWindowOfMode } from "../tabActions/createTabInLastFocusedWindow";
+import { createTabInLastFocusedWindowOfMode } from "../tabActions";
 import { type ContextMenuClickHandler } from "./contextMenus";
 
 export const onOpenLinkInOppositeMode: ContextMenuClickHandler = async (info, tab) => {

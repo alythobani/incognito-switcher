@@ -1,4 +1,4 @@
-import { openExtensionSettings } from "../actions/tabActions/openExtensionSettings";
+import { openExtensionSettings } from "../actions/tabActions";
 
 export const verifyIncognitoAccess = async (): Promise<void> => {
   const isAllowedAccess = await chrome.extension.isAllowedIncognitoAccess();

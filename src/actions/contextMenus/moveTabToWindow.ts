@@ -2,8 +2,7 @@ import { type IncognitoMode } from "../../models/incognitoMode";
 import { type WindowInfo } from "../../models/windowInfo";
 import { getWindowInfosByMode } from "../../providers/windowInfos";
 import { capitalize } from "../../utils/utils";
-import { closeTab } from "../tabActions/closeTab";
-import { createNewTabInWindow } from "../tabActions/createNewTabInWindow";
+import { closeTab, createNewTabInWindow } from "../tabActions";
 import { type ContextMenuClickHandler, type ContextMenuItem } from "./contextMenus";
 
 /* Exports */
