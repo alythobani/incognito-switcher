@@ -1,4 +1,5 @@
-import { switchIncognitoMode } from "../actions/commands/switchIncognitoMode";
+import { onSwitchIncognitoMode } from "../actions/commands/switchIncognitoMode";
+import { log } from "../utils/logger";
 import { convertToCallback } from "../utils/utils";
 
 export function setupCommands(): void {
@@ -6,9 +7,10 @@ export function setupCommands(): void {
 }
 
 const onCommand = async (command: string, tab: chrome.tabs.Tab): Promise<void> => {
+  log(`Command "${command} called`, tab.url, tab.incognito);
   switch (command) {
     case "switchIncognitoMode":
-      await switchIncognitoMode(tab);
+      await onSwitchIncognitoMode(tab);
       break;
     default:
       console.error("Unknown command", command);

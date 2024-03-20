@@ -2,7 +2,7 @@ import { type IncognitoMode } from "../../models/incognitoMode";
 import { type WindowInfo } from "../../models/windowInfo";
 import { getWindowInfosByMode } from "../../providers/windowInfos";
 import { capitalize } from "../../utils/utils";
-import { closeTab, createNewTabInWindow } from "../tabActions";
+import { moveTabToWindow } from "../tabActions";
 import { type ContextMenuClickHandler, type ContextMenuItem } from "./contextMenus";
 
 /* Exports */
@@ -54,14 +54,7 @@ export const getMoveTabToWindowHandler = (windowInfo: WindowInfo): ContextMenuCl
     if (tab === undefined) {
       throw new Error(`onMoveTabToWindow called with no active tab: ${JSON.stringify(info)}`);
     }
-    if (tab.url === undefined) {
-      throw new Error(`tab.url is undefined: ${JSON.stringify(tab)}`);
-    }
     const { windowId, mode } = windowInfo;
-
-    const didCreateTab = await createNewTabInWindow({ url: tab.url, windowId, mode });
-    if (didCreateTab) {
-      await closeTab(tab);
-    }
+    await moveTabToWindow({ tab, windowId, mode });
   };
 };

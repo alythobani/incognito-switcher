@@ -9,6 +9,5 @@ export const onOpenLinkInOppositeMode: ContextMenuClickHandler = async (info, ta
   if (info.linkUrl === undefined) {
     throw new Error(`info.linkUrl is undefined: ${JSON.stringify(info)}`);
   }
-  const newMode = getOppositeMode(tab);
-  await createTabInLastFocusedWindowOfMode({ url: info.linkUrl, mode: newMode });
+  await createTabInLastFocusedWindowOfMode({ url: info.linkUrl, mode: getOppositeMode(tab) });
 };
