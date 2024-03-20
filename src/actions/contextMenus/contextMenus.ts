@@ -1,7 +1,6 @@
 import { getContextMenuItem } from "../../providers/contextMenus";
 import { getMoveTabToWindowContextMenuItems } from "./moveTabToWindow";
 import { onOpenLinkInOppositeMode } from "./openLinkInOppositeMode";
-import { onSwitchTabToOppositeMode } from "./switchTabToOppositeMode";
 
 /* Types */
 
@@ -24,20 +23,9 @@ const openLinkInOppositeModeContextMenuItem: ContextMenuItem = {
   onClick: onOpenLinkInOppositeMode,
 };
 
-const switchTabToOppositeModeContextMenuItem: ContextMenuItem = {
-  id: "switchTabToOppositeMode",
-  title: "Switch this tab to Incognito/Normal mode",
-  contexts: ["page"],
-  onClick: onSwitchTabToOppositeMode,
-};
-
 export const getAllContextMenuItems = async (): Promise<ContextMenuItem[]> => {
   const moveTabToWindowContextMenuItems = await getMoveTabToWindowContextMenuItems();
-  return [
-    openLinkInOppositeModeContextMenuItem,
-    switchTabToOppositeModeContextMenuItem,
-    ...moveTabToWindowContextMenuItems,
-  ];
+  return [openLinkInOppositeModeContextMenuItem, ...moveTabToWindowContextMenuItems];
 };
 
 export const onContextMenuItemClicked: ContextMenuClickHandler = async (info, tab) => {

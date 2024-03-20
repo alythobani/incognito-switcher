@@ -24,7 +24,7 @@ export const getMoveTabToWindowContextMenuItems = async (): Promise<ContextMenuI
 
 const moveTabToWindowContextMenuItemParent: ContextMenuItem = {
   id: "moveTabToAnotherWindow",
-  title: "Move this tab to another window",
+  title: "Switch this tab to another window",
   contexts: ["page"],
   onClick: null,
 };
