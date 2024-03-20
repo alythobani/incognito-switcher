@@ -1,27 +1,68 @@
+import { type IncognitoMode } from "../../models/incognitoMode";
+import { type WindowInfo } from "../../models/windowInfo";
+import { getWindowInfosByMode } from "../../providers/windowInfos";
+import { capitalize } from "../../utils/utils";
 import { closeTab } from "../tabActions/closeTab";
 import { createNewTabInWindow } from "../tabActions/createNewTabInWindow";
-import { type ContextMenuClickHandler } from "./contextMenus";
+import { type ContextMenuClickHandler, type ContextMenuItem } from "./contextMenus";
 
-export const onMoveTabToWindow: ContextMenuClickHandler = async (info, tab) => {
-  if (tab === undefined) {
-    throw new Error(`onMoveTabToWindow called with no active tab: ${JSON.stringify(info)}`);
-  }
-  const windowId = parseWindowIdFromMenuItemId(info.menuItemId);
-  if (tab.url === undefined) {
-    throw new Error(`tab.url is undefined: ${JSON.stringify(tab)}`);
-  }
-  await createNewTabInWindow({ url: tab.url, windowId });
-  await closeTab(tab);
+/* Exports */
+
+export const getMoveTabToWindowContextMenuItems = async (): Promise<ContextMenuItem[]> => {
+  const windowInfosByMode = await getWindowInfosByMode();
+  const normalWindowItems = windowInfosByMode.normal.map(getMoveTabToWindowContextMenuItem);
+  const incognitoWindowItems = windowInfosByMode.incognito.map(getMoveTabToWindowContextMenuItem);
+  return [
+    moveTabToWindowContextMenuItemParent,
+    getMoveTabToWindowModeHeaderItem("normal"),
+    ...normalWindowItems,
+    getMoveTabToWindowModeHeaderItem("incognito"),
+    ...incognitoWindowItems,
+  ];
 };
 
-const parseWindowIdFromMenuItemId = (menuItemId: string | number): number => {
-  if (typeof menuItemId === "number") {
-    throw new Error(`Unrecognized menuItemId of type number: ${menuItemId}`);
-  }
-  const moveTabToWindowRegex = /^moveTabToWindow(\d+)$/;
-  const windowId = menuItemId.match(moveTabToWindowRegex)?.[1];
-  if (windowId === undefined) {
-    throw new Error(`menuItemId did not match moveTabToWindowRegex: ${menuItemId}`);
-  }
-  return parseInt(windowId);
+/* Implementation */
+
+const moveTabToWindowContextMenuItemParent: ContextMenuItem = {
+  id: "moveTabToAnotherWindow",
+  title: "Move this tab to another window",
+  contexts: ["page"],
+  onClick: null,
+};
+
+const getMoveTabToWindowModeHeaderItem = (mode: IncognitoMode): ContextMenuItem => {
+  const capitalizedMode = capitalize(mode);
+  return {
+    id: `moveTabToWindow${capitalizedMode}Header`,
+    parentId: moveTabToWindowContextMenuItemParent.id,
+    contexts: ["page"],
+    title: `${capitalizedMode} Windows`,
+    onClick: null,
+    enabled: false,
+  };
+};
+
+const getMoveTabToWindowContextMenuItem = (windowInfo: WindowInfo): ContextMenuItem => ({
+  id: `moveTabToWindow${windowInfo.windowId}`,
+  parentId: moveTabToWindowContextMenuItemParent.id,
+  contexts: ["page"],
+  title: windowInfo.getContextMenuItemTitle(),
+  onClick: getMoveTabToWindowHandler(windowInfo),
+});
+
+export const getMoveTabToWindowHandler = (windowInfo: WindowInfo): ContextMenuClickHandler => {
+  return async (info, tab) => {
+    if (tab === undefined) {
+      throw new Error(`onMoveTabToWindow called with no active tab: ${JSON.stringify(info)}`);
+    }
+    if (tab.url === undefined) {
+      throw new Error(`tab.url is undefined: ${JSON.stringify(tab)}`);
+    }
+    const { windowId, mode } = windowInfo;
+
+    const didCreateTab = await createNewTabInWindow({ url: tab.url, windowId, mode });
+    if (didCreateTab) {
+      await closeTab(tab);
+    }
+  };
 };

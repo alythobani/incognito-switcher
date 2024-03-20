@@ -1,10 +1,12 @@
-import { onMoveTabToWindow } from "./moveTabToWindow";
+import { getContextMenuItem } from "../../providers/contextMenus";
+import { getMoveTabToWindowContextMenuItems } from "./moveTabToWindow";
 import { onOpenLinkInOppositeMode } from "./openLinkInOppositeMode";
 import { onOpenTabInOppositeMode } from "./openTabInOppositeMode";
 
 /* Types */
 
-type ContextMenuItem = Omit<chrome.contextMenus.CreateProperties, "onclick"> & {
+export type ContextMenuItem = Omit<chrome.contextMenus.CreateProperties, "id" | "onclick"> & {
+  id: string;
   onClick: ContextMenuClickHandler | null;
 };
 
@@ -15,42 +17,33 @@ export type ContextMenuClickHandler = (
 
 /* Exports */
 
-export const getContextMenuItems = (): Record<string, ContextMenuItem> => {
-  const contextMenuItemById: Record<string, ContextMenuItem> = {
-    openLinkInOppositeMode: {
-      id: "openLinkInOppositeMode",
-      title: "Open this link in Incognito/Normal",
-      contexts: ["link"],
-      onClick: onOpenLinkInOppositeMode,
-    },
-    openTabInOppositeMode: {
-      id: "openTabInOppositeMode",
-      title: "Move this tab to Incognito/Normal",
-      contexts: ["page"],
-      onClick: onOpenTabInOppositeMode,
-    },
-    moveTabToAnotherWindow: {
-      id: "moveTabToAnotherWindow",
-      title: "Move this tab to another window",
-      contexts: ["page"],
-      onClick: null,
-    },
-  };
-  return contextMenuItemById;
+const openLinkInOppositeModeContextMenuItem: ContextMenuItem = {
+  id: "openLinkInOppositeMode",
+  title: "Open this link in Incognito/Normal",
+  contexts: ["link"],
+  onClick: onOpenLinkInOppositeMode,
+};
+
+const openTabInOppositeModeContextMenuItem: ContextMenuItem = {
+  id: "openTabInOppositeMode",
+  title: "Move this tab to Incognito/Normal",
+  contexts: ["page"],
+  onClick: onOpenTabInOppositeMode,
+};
+
+export const getAllContextMenuItems = async (): Promise<ContextMenuItem[]> => {
+  const moveTabToWindowContextMenuItems = await getMoveTabToWindowContextMenuItems();
+  return [
+    openLinkInOppositeModeContextMenuItem,
+    openTabInOppositeModeContextMenuItem,
+    ...moveTabToWindowContextMenuItems,
+  ];
 };
 
 export const onContextMenuItemClicked: ContextMenuClickHandler = async (info, tab) => {
-  switch (info.menuItemId) {
-    case "openLinkInOppositeMode":
-      await onOpenLinkInOppositeMode(info, tab);
-      return;
-    case "openTabInOppositeMode":
-      await onOpenTabInOppositeMode(info, tab);
-      return;
-    case "moveTabToAnotherWindow":
-      return;
-    default: {
-      await onMoveTabToWindow(info, tab);
-    }
+  const contextMenuItem = await getContextMenuItem(info.menuItemId);
+  if (contextMenuItem === undefined) {
+    throw new Error(`contextMenuItem not found: ${info.menuItemId}`);
   }
+  await contextMenuItem.onClick?.(info, tab);
 };

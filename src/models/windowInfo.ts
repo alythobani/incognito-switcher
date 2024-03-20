@@ -34,7 +34,7 @@ export class WindowInfo {
     return Array.from(this.tabInfoById.values()).find((tabInfo) => tabInfo.isActive);
   }
 
-  getContextMenuItemTitle(index: number): string {
+  getContextMenuItemTitle(): string {
     const windowName = this.getName();
     const activeTabName = this.getActiveTabName();
     const numTabs = this.tabInfoById.size;

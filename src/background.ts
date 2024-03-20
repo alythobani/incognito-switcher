@@ -1,3 +1,4 @@
+import { createContextMenuItems } from "./providers/contextMenus";
 import { startTrackingWindowInfos } from "./providers/windowInfos";
 import { setupCommands } from "./setup/setupCommands";
 import { setupContextMenus } from "./setup/setupContextMenus";
@@ -5,18 +6,24 @@ import { setupMainAction } from "./setup/setupMainAction";
 import { verifyIncognitoAccess } from "./setup/verifyIncognitoAccess";
 import { logSuccess, logWarning } from "./utils/logger";
 
-logSuccess("Background script running!");
+const runBackgroundScript = async (): Promise<void> => {
+  logSuccess("Background script running!");
 
-void startTrackingWindowInfos();
+  await startTrackingWindowInfos();
 
-verifyIncognitoAccess();
+  await createContextMenuItems();
 
-setupMainAction();
+  await verifyIncognitoAccess();
 
-setupCommands();
+  setupMainAction();
 
-setupContextMenus();
+  setupCommands();
 
-chrome.runtime.onSuspend.addListener(() => {
-  logWarning("Background script suspended");
-});
+  setupContextMenus();
+
+  chrome.runtime.onSuspend.addListener(() => {
+    logWarning("Background script suspended");
+  });
+};
+
+void runBackgroundScript();

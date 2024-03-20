@@ -1,13 +1,17 @@
-/* Types */
-
 import { type IncognitoMode } from "../models/incognitoMode";
 import { TabInfo } from "../models/tabInfo";
 import { WindowInfo } from "../models/windowInfo";
 import { log, logSuccess, logWarning } from "../utils/logger";
 
+/* Types */
+
 type WindowInfoById = Map<number, WindowInfo>;
 
 /* Exports */
+
+export async function getWindowInfosProvider(): Promise<WindowInfosProvider> {
+  return await WindowInfosProvider.getInstance();
+}
 
 export async function startTrackingWindowInfos(): Promise<void> {
   await WindowInfosProvider.getInstance();
@@ -16,6 +20,19 @@ export async function startTrackingWindowInfos(): Promise<void> {
 export async function getWindowInfos(): Promise<WindowInfoById> {
   const windowInfosProvider = await WindowInfosProvider.getInstance();
   return windowInfosProvider.getWindowInfoById();
+}
+
+export async function getWindowInfosByMode(): Promise<{ [mode in IncognitoMode]: WindowInfo[] }> {
+  const windowInfosProvider = await WindowInfosProvider.getInstance();
+  const windowInfoById = windowInfosProvider.getWindowInfoById();
+  const windowInfosByMode: { [mode in IncognitoMode]: WindowInfo[] } = {
+    incognito: [],
+    normal: [],
+  };
+  windowInfoById.forEach((windowInfo) => {
+    windowInfosByMode[windowInfo.mode].push(windowInfo);
+  });
+  return windowInfosByMode;
 }
 
 export async function getLastFocusedWindowIdOfMode(mode: IncognitoMode): Promise<number | null> {
@@ -33,7 +50,7 @@ export async function getLastFocusedWindowIdOfMode(mode: IncognitoMode): Promise
 
 /* Provider Class */
 
-class WindowInfosProvider {
+export class WindowInfosProvider {
   /* Private fields and methods */
 
   private static instance: WindowInfosProvider | null = null;
@@ -107,7 +124,7 @@ class WindowInfosProvider {
   }
 
   public getInstanceName(): string {
-    return `Instance ${this.instanceId}`;
+    return `WindowInfosProvider ${this.instanceId}`;
   }
 
   public getWindowInfoById(): WindowInfoById {

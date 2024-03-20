@@ -20,3 +20,7 @@ export function isURL(text: string): boolean {
 export function throwExpectedNeverError(value: never): never {
   throw new Error("Expected never, instead got: " + JSON.stringify(value));
 }
+
+export function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
