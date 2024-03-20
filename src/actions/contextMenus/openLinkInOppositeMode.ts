@@ -1,5 +1,5 @@
 import { getOppositeMode } from "../../models/incognitoMode";
-import { createNewTab } from "../tabActions/createNewTab";
+import { createTabInLastFocusedWindowOfMode } from "../tabActions/createTabInLastFocusedWindow";
 import { type ContextMenuClickHandler } from "./contextMenus";
 
 export const onOpenLinkInOppositeMode: ContextMenuClickHandler = async (info, tab) => {
@@ -10,5 +10,5 @@ export const onOpenLinkInOppositeMode: ContextMenuClickHandler = async (info, ta
     throw new Error(`info.linkUrl is undefined: ${JSON.stringify(info)}`);
   }
   const newMode = getOppositeMode(tab);
-  await createNewTab({ url: info.linkUrl, mode: newMode });
+  await createTabInLastFocusedWindowOfMode({ url: info.linkUrl, mode: newMode });
 };

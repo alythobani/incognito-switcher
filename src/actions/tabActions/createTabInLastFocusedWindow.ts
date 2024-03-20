@@ -4,12 +4,11 @@ import { logWarning } from "../../utils/logger";
 import { createNewTabInWindow } from "./createNewTabInWindow";
 import { createNewWindow } from "./createNewWindow";
 
-//  TODO: rename
 /**
  * Creates a new tab in the last focused window of the given mode. Creates a new window if no window of the given mode exists.
  * @returns Whether the tab was successfully created
  */
-export async function createNewTab({
+export async function createTabInLastFocusedWindowOfMode({
   url,
   mode,
 }: {

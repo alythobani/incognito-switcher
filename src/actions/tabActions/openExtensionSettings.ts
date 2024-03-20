@@ -1,6 +1,6 @@
 import { getExtensionSettingsURL } from "../../utils/chromeUtils";
-import { createNewTab } from "./createNewTab";
+import { createTabInLastFocusedWindowOfMode } from "./createTabInLastFocusedWindow";
 
 export const openExtensionSettings = async (): Promise<void> => {
-  await createNewTab({ url: getExtensionSettingsURL(), mode: "normal" });
+  await createTabInLastFocusedWindowOfMode({ url: getExtensionSettingsURL(), mode: "normal" });
 };
