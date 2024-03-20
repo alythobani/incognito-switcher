@@ -1,3 +1,4 @@
+import { truncate } from "../utils/utils";
 import { incognitoBooleanToMode, type IncognitoMode } from "./incognitoMode";
 import { TabInfo } from "./tabInfo";
 
@@ -38,7 +39,7 @@ export class WindowInfo {
     const windowName = this.getName();
     const activeTabName = this.getActiveTabName();
     const numTabs = this.tabInfoById.size;
-    return `${windowName} [${activeTabName}] (${numTabs})`;
+    return `${windowName} [${truncate(activeTabName, 50)}] (${numTabs})`;
   }
 }
 
