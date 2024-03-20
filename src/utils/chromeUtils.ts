@@ -1,10 +1,10 @@
 import { type IncognitoMode } from "../models/incognitoMode";
 
-export function isInvalidChromeUrl(url: string, mode: IncognitoMode): boolean {
-  if (mode === "normal" || url.startsWith("chrome://newtab/")) {
+export function isValidUrlForMode(url: string, mode: IncognitoMode): boolean {
+  if (url.startsWith("chrome://") && !url.startsWith("chrome://newtab/") && mode === "incognito") {
     return false;
   }
-  return url.startsWith("chrome://");
+  return true;
 }
 
 export function getExtensionSettingsURL(): string {

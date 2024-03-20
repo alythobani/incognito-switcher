@@ -1,5 +1,5 @@
 import { type IncognitoMode } from "../../models/incognitoMode";
-import { isInvalidChromeUrl } from "../../utils/chromeUtils";
+import { isValidUrlForMode } from "../../utils/chromeUtils";
 import { logWarning } from "../../utils/logger";
 
 export async function createNewTabInWindow({
@@ -11,8 +11,8 @@ export async function createNewTabInWindow({
   windowId: number;
   mode: IncognitoMode;
 }): Promise<boolean> {
-  if (isInvalidChromeUrl(url, mode)) {
-    logWarning("Cannot open chrome:// URL in incognito mode: " + url);
+  if (!isValidUrlForMode(url, mode)) {
+    logWarning(`Can't open ${url} in ${mode} mode`);
     return false;
   }
   const newlyFocusedWindow = await chrome.windows.update(windowId, { focused: true });

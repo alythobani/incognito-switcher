@@ -1,5 +1,5 @@
-import { type IncognitoMode } from "../../models/incognitoMode";
-import { isInvalidChromeUrl } from "../../utils/chromeUtils";
+import { modeToIncognitoBoolean, type IncognitoMode } from "../../models/incognitoMode";
+import { isValidUrlForMode } from "../../utils/chromeUtils";
 import { logWarning } from "../../utils/logger";
 
 export async function createNewWindow({
@@ -9,10 +9,10 @@ export async function createNewWindow({
   url: string;
   mode: IncognitoMode;
 }): Promise<boolean> {
-  if (isInvalidChromeUrl(url, mode)) {
-    logWarning("Cannot open chrome:// URL in incognito mode: " + url);
+  if (!isValidUrlForMode(url, mode)) {
+    logWarning(`Can't open ${url} in ${mode} mode`);
     return false;
   }
-  const window = await chrome.windows.create({ url, incognito: mode === "incognito" });
-  return window !== undefined;
+  await chrome.windows.create({ url, incognito: modeToIncognitoBoolean(mode) });
+  return true;
 }

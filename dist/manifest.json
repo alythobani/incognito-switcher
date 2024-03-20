@@ -8,7 +8,7 @@
         "default": "Ctrl+Shift+Y",
         "mac": "Command+Shift+Y"
       },
-      "description": "Switch to incognito/normal (opens in most recently accessed window)"
+      "description": "Switch to incognito/normal (opens in the most recently used window of that mode)"
     }
   },
   "permissions": ["tabs", "contextMenus", "notifications"],
