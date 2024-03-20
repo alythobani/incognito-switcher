@@ -1,16 +1,7 @@
-import { getAllContextMenuItems } from "../actions/contextMenus/contextMenus";
+import { getAllContextMenuItems, type ContextMenuItem } from "../actions/contextMenus/contextMenus";
 import { logError, logSuccess } from "../utils/logger";
 
 /* Types */
-
-type ContextMenuItem = Omit<chrome.contextMenus.CreateProperties, "onclick"> & {
-  onClick: ContextMenuItemClickHandler | null;
-};
-
-export type ContextMenuItemClickHandler = (
-  info: chrome.contextMenus.OnClickData,
-  tab?: chrome.tabs.Tab
-) => Promise<void>;
 
 type ContextMenuItemById = Map<string, ContextMenuItem>;
 
